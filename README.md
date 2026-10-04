@@ -8,11 +8,12 @@ Mobile-first techno step sequencer built with vanilla HTML/CSS/JavaScript and th
 - 1/8 and 1/16 resolution
 - 16 or 32 steps
 - 80–180 BPM
-- Per-track mute and volume
+- Per-track mute
 - Per-track clear and full-pattern clear
 - Bass pitch selection by holding an active bass step
 - Browser-local pattern save
-- Mobile-first UI
+- Scroll-safe step tapping (vertical scrolling does not toggle steps)
+- Portrait-first mobile UI with vertically stacked tracks
 - PWA manifest + service worker for home-screen use/offline caching
 - No external audio files or JavaScript libraries
 

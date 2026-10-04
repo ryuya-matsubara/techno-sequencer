@@ -2,14 +2,14 @@
   'use strict';
 
   const TRACKS = [
-    { id: 'kick', name: 'Kick', volume: 0.95 },
-    { id: 'clap', name: 'Clap', volume: 0.58 },
-    { id: 'closedHat', name: 'Closed Hat', volume: 0.42 },
-    { id: 'openHat', name: 'Open Hat', volume: 0.36 },
-    { id: 'perc', name: 'Perc', volume: 0.46 },
-    { id: 'bass', name: 'Bass', volume: 0.62 },
-    { id: 'lead', name: 'Lead', volume: 0.35 },
-    { id: 'fx', name: 'FX', volume: 0.32 },
+    { id: 'kick', name: 'Kick', level: 0.95 },
+    { id: 'clap', name: 'Clap', level: 0.58 },
+    { id: 'closedHat', name: 'Closed Hat', level: 0.42 },
+    { id: 'openHat', name: 'Open Hat', level: 0.36 },
+    { id: 'perc', name: 'Perc', level: 0.46 },
+    { id: 'bass', name: 'Bass', level: 0.62 },
+    { id: 'lead', name: 'Lead', level: 0.35 },
+    { id: 'fx', name: 'FX', level: 0.32 },
   ];
 
   const BASS_NOTES = ['C1','D1','D#1','F1','G1','G#1','A#1','C2','D2','D#2','F2','G2'];
@@ -65,7 +65,6 @@
       pattern,
       bassNotes,
       muted: Object.fromEntries(TRACKS.map(t => [t.id, false])),
-      volumes: Object.fromEntries(TRACKS.map(t => [t.id, t.volume])),
     };
   }
 
@@ -82,8 +81,6 @@
           next.pattern[track.id] = Array.from({ length: 32 }, (_, i) => Boolean(saved.pattern[track.id][i]));
         }
         next.muted[track.id] = Boolean(saved.muted?.[track.id]);
-        const vol = Number(saved.volumes?.[track.id]);
-        if (Number.isFinite(vol)) next.volumes[track.id] = clamp(vol, 0, 1);
       });
       if (Array.isArray(saved.bassNotes)) {
         next.bassNotes = Array.from({ length: 32 }, (_, i) => BASS_NOTES.includes(saved.bassNotes[i]) ? saved.bassNotes[i] : 'C1');
@@ -109,54 +106,42 @@
     el.stepCount.value = String(state.stepCount);
 
     const frag = document.createDocumentFragment();
-    const header = document.createElement('div');
-    header.className = 'grid-row step-header';
-    header.style.setProperty('--steps', state.stepCount);
-    const headLabel = document.createElement('div');
-    headLabel.className = 'step-number';
-    headLabel.textContent = 'TRACK / STEP';
-    header.appendChild(headLabel);
-    for (let i = 0; i < state.stepCount; i++) {
-      const n = document.createElement('div');
-      n.className = `step-index${isBeatBoundary(i) ? ' beat' : ''}`;
-      n.textContent = String(i + 1);
-      header.appendChild(n);
-    }
-    frag.appendChild(header);
-
     TRACKS.forEach(track => frag.appendChild(renderTrack(track)));
     el.sequencer.replaceChildren(frag);
     updateLoopInfo();
   }
 
   function renderTrack(track) {
-    const row = document.createElement('div');
-    row.className = 'grid-row';
-    row.dataset.track = track.id;
-    row.style.setProperty('--steps', state.stepCount);
+    const card = document.createElement('section');
+    card.className = 'track-card';
+    card.dataset.track = track.id;
 
-    const controls = document.createElement('div');
-    controls.className = 'track-control';
+    const head = document.createElement('div');
+    head.className = 'track-head';
 
-    const name = document.createElement('span');
+    const name = document.createElement('h3');
     name.className = 'track-name';
     name.textContent = track.name;
 
     const actions = document.createElement('div');
     actions.className = 'track-actions';
+
     const mute = document.createElement('button');
     mute.type = 'button';
-    mute.textContent = 'M';
+    mute.textContent = 'Mute';
     mute.title = `Mute ${track.name}`;
     mute.classList.toggle('muted', state.muted[track.id]);
     mute.addEventListener('click', () => {
       state.muted[track.id] = !state.muted[track.id];
       mute.classList.toggle('muted', state.muted[track.id]);
+      mute.textContent = state.muted[track.id] ? 'Muted' : 'Mute';
       saveState(false);
     });
+    if (state.muted[track.id]) mute.textContent = 'Muted';
+
     const clear = document.createElement('button');
     clear.type = 'button';
-    clear.textContent = 'C';
+    clear.textContent = 'Clear';
     clear.title = `Clear ${track.name}`;
     clear.addEventListener('click', () => {
       state.pattern[track.id].fill(false);
@@ -165,22 +150,10 @@
       setStatus(`${track.name} cleared`);
     });
     actions.append(mute, clear);
+    head.append(name, actions);
 
-    const volume = document.createElement('input');
-    volume.className = 'track-volume';
-    volume.type = 'range';
-    volume.min = '0';
-    volume.max = '1';
-    volume.step = '0.01';
-    volume.value = String(state.volumes[track.id]);
-    volume.setAttribute('aria-label', `${track.name} volume`);
-    volume.addEventListener('input', () => {
-      state.volumes[track.id] = Number(volume.value);
-      saveState(false);
-    });
-
-    controls.append(name, actions, volume);
-    row.appendChild(controls);
+    const grid = document.createElement('div');
+    grid.className = 'step-grid';
 
     for (let i = 0; i < state.stepCount; i++) {
       const cell = document.createElement('button');
@@ -189,6 +162,12 @@
       cell.dataset.track = track.id;
       cell.dataset.step = String(i);
       cell.setAttribute('aria-label', `${track.name} step ${i + 1}`);
+
+      const index = document.createElement('span');
+      index.className = 'step-label';
+      index.textContent = String(i + 1);
+      cell.appendChild(index);
+
       if (track.id === 'bass' && state.pattern.bass[i]) {
         const label = document.createElement('span');
         label.className = 'note-label';
@@ -196,36 +175,63 @@
         cell.appendChild(label);
       }
       bindStepInteraction(cell, track.id, i);
-      row.appendChild(cell);
+      grid.appendChild(cell);
     }
-    return row;
+
+    card.append(head, grid);
+    return card;
   }
 
   function bindStepInteraction(cell, trackId, step) {
     let holdTimer = null;
     let held = false;
-
-    const startHold = () => {
-      if (trackId !== 'bass' || !state.pattern.bass[step]) return;
-      held = false;
-      holdTimer = window.setTimeout(() => {
-        held = true;
-        openNoteDialog(step);
-        if (navigator.vibrate) navigator.vibrate(15);
-      }, 460);
-    };
+    let moved = false;
+    let startX = 0;
+    let startY = 0;
+    const MOVE_THRESHOLD = 10;
 
     const cancelHold = () => {
       if (holdTimer) window.clearTimeout(holdTimer);
       holdTimer = null;
     };
 
-    cell.addEventListener('pointerdown', startHold);
-    cell.addEventListener('pointerleave', cancelHold);
-    cell.addEventListener('pointercancel', cancelHold);
-    cell.addEventListener('pointerup', () => {
+    cell.addEventListener('pointerdown', event => {
+      startX = event.clientX;
+      startY = event.clientY;
+      moved = false;
+      held = false;
+
+      if (trackId === 'bass' && state.pattern.bass[step]) {
+        holdTimer = window.setTimeout(() => {
+          if (moved) return;
+          held = true;
+          openNoteDialog(step);
+          if (navigator.vibrate) navigator.vibrate(15);
+        }, 460);
+      }
+    });
+
+    cell.addEventListener('pointermove', event => {
+      const dx = event.clientX - startX;
+      const dy = event.clientY - startY;
+      if (Math.hypot(dx, dy) >= MOVE_THRESHOLD) {
+        moved = true;
+        cancelHold();
+      }
+    });
+
+    cell.addEventListener('pointercancel', () => {
+      moved = true;
       cancelHold();
-      if (held) return;
+    });
+
+    cell.addEventListener('pointerup', event => {
+      cancelHold();
+      const dx = event.clientX - startX;
+      const dy = event.clientY - startY;
+      if (Math.hypot(dx, dy) >= MOVE_THRESHOLD) moved = true;
+      if (held || moved) return;
+
       state.pattern[trackId][step] = !state.pattern[trackId][step];
       saveState(false);
       render();
@@ -323,7 +329,7 @@
 
   function scheduleStep(step, time) {
     TRACKS.forEach(track => {
-      if (!state.muted[track.id] && state.pattern[track.id][step]) trigger(track.id, time, step, state.volumes[track.id]);
+      if (!state.muted[track.id] && state.pattern[track.id][step]) trigger(track.id, time, step, track.level);
     });
     const delay = Math.max(0, (time - audio.ctx.currentTime) * 1000);
     const timer = window.setTimeout(() => {
