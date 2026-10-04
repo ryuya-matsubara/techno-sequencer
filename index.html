@@ -10,109 +10,32 @@
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="apple-touch-icon" href="./icon.svg" />
   <link rel="icon" href="./icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css" />
-  <link rel="stylesheet" href="./library.css" />
+  <link rel="stylesheet" href="./home.css" />
   <title>Techno Sequencer</title>
 </head>
 <body>
-  <main class="app-shell">
-    <header class="topbar">
+  <main class="home-shell">
+    <header class="home-head">
       <div>
-        <p class="eyebrow">PHASE 1</p>
-        <h1>TECHNO SEQUENCER</h1>
+        <p class="eyebrow">TECHNO SEQUENCER</p>
+        <h1>Patterns</h1>
+        <p class="subtitle">Choose a saved pattern or start a new one.</p>
       </div>
-      <div class="transport" aria-label="Transport controls">
-        <button id="playBtn" class="primary" type="button">▶ Play</button>
-        <button id="stopBtn" type="button">■ Stop</button>
-      </div>
+      <button id="newPatternBtn" class="new-button" type="button">＋ New Pattern</button>
     </header>
 
-    <section class="control-panel" aria-label="Sequencer settings">
-      <label>
-        <span>BPM</span>
-        <div class="bpm-control">
-          <input id="bpm" type="range" min="80" max="180" step="1" value="140" />
-          <output id="bpmValue">140</output>
-        </div>
-      </label>
-
-      <label>
-        <span>Resolution</span>
-        <select id="resolution">
-          <option value="16" selected>1/16</option>
-          <option value="8">1/8</option>
-        </select>
-      </label>
-
-      <label>
-        <span>Steps</span>
-        <select id="stepCount">
-          <option value="16" selected>16</option>
-          <option value="32">32</option>
-        </select>
-      </label>
-
-      <div class="utility-buttons">
-        <button id="saveBtn" type="button">Save Pattern</button>
-        <button id="clearBtn" class="danger" type="button">Clear all</button>
+    <section class="library" aria-labelledby="libraryTitle">
+      <div class="library-head">
+        <h2 id="libraryTitle">Saved Patterns</h2>
+        <span id="savedCount" class="count">0</span>
       </div>
-    </section>
-
-    <section class="sequencer-card">
-      <div class="hint-row">
-        <span>Tap a step to toggle · scroll vertically to move through tracks</span>
-        <span>Bass: hold an active step to set pitch</span>
+      <div id="patternList" class="pattern-list"></div>
+      <div id="emptyState" class="empty-state" hidden>
+        <p>No saved patterns yet.</p>
+        <button id="emptyNewBtn" type="button">Create your first pattern</button>
       </div>
-      <div id="sequencer" class="sequencer" aria-label="Step sequencer"></div>
-    </section>
-
-    <section class="status-card" aria-live="polite">
-      <span id="status">Ready</span>
-      <span id="loopInfo">1 bar · 1/16</span>
-    </section>
-
-    <section class="saved-section" aria-labelledby="savedTitle">
-      <div class="saved-head">
-        <div>
-          <p class="eyebrow">LIBRARY</p>
-          <h2 id="savedTitle">Saved Patterns</h2>
-        </div>
-        <span id="savedCount" class="saved-count">0 saved</span>
-      </div>
-      <div id="savedPatterns" class="saved-patterns"></div>
-      <p id="savedEmpty" class="saved-empty">No saved patterns yet.</p>
     </section>
   </main>
-
-  <dialog id="saveDialog" class="save-dialog">
-    <form id="saveForm">
-      <div class="dialog-head">
-        <div>
-          <p class="eyebrow">SAVE PATTERN</p>
-          <h2>Name this pattern</h2>
-        </div>
-        <button type="button" id="cancelSaveBtn" class="icon-button" aria-label="Close">×</button>
-      </div>
-      <label class="save-name-label" for="saveName">Pattern name</label>
-      <input id="saveName" class="pattern-name-input" type="text" maxlength="40" autocomplete="off" placeholder="e.g. Peak Time 01" />
-      <button id="confirmSaveBtn" class="primary save-confirm" type="submit">Save</button>
-    </form>
-  </dialog>
-
-  <dialog id="noteDialog" class="note-dialog">
-    <form method="dialog">
-      <div class="dialog-head">
-        <div>
-          <p class="eyebrow">BASS PITCH</p>
-          <h2 id="noteDialogTitle">Step 1</h2>
-        </div>
-        <button value="cancel" class="icon-button" aria-label="Close">×</button>
-      </div>
-      <div id="noteOptions" class="note-grid"></div>
-    </form>
-  </dialog>
-
-  <script src="./app.js"></script>
-  <script src="./library.js"></script>
+  <script src="./home.js"></script>
 </body>
 </html>
