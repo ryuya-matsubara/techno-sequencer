@@ -1,9 +1,11 @@
-const CACHE = 'techno-sequencer-v2';
+const CACHE = 'techno-sequencer-v3';
 const ASSETS = [
   './',
   './index.html',
   './styles.css',
+  './library.css',
   './app.js',
+  './library.js',
   './manifest.webmanifest',
   './icon.svg'
 ];
