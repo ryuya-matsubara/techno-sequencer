@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0b0d" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Techno Seq" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="./icon.svg" />
+  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./styles.css" />
+  <title>Techno Sequencer</title>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">PHASE 1</p>
+        <h1>TECHNO SEQUENCER</h1>
+      </div>
+      <div class="transport" aria-label="Transport controls">
+        <button id="playBtn" class="primary" type="button">▶ Play</button>
+        <button id="stopBtn" type="button">■ Stop</button>
+      </div>
+    </header>
+
+    <section class="control-panel" aria-label="Sequencer settings">
+      <label>
+        <span>BPM</span>
+        <div class="bpm-control">
+          <input id="bpm" type="range" min="80" max="180" step="1" value="140" />
+          <output id="bpmValue">140</output>
+        </div>
+      </label>
+
+      <label>
+        <span>Resolution</span>
+        <select id="resolution">
+          <option value="16" selected>1/16</option>
+          <option value="8">1/8</option>
+        </select>
+      </label>
+
+      <label>
+        <span>Steps</span>
+        <select id="stepCount">
+          <option value="16" selected>16</option>
+          <option value="32">32</option>
+        </select>
+      </label>
+
+      <div class="utility-buttons">
+        <button id="saveBtn" type="button">Save</button>
+        <button id="clearBtn" class="danger" type="button">Clear all</button>
+      </div>
+    </section>
+
+    <section class="sequencer-card">
+      <div class="hint-row">
+        <span>Tap cells to toggle</span>
+        <span>Bass: hold an active step to set pitch</span>
+      </div>
+      <div id="sequencer" class="sequencer" aria-label="Step sequencer"></div>
+    </section>
+
+    <section class="status-card" aria-live="polite">
+      <span id="status">Ready</span>
+      <span id="loopInfo">1 bar · 1/16</span>
+    </section>
+  </main>
+
+  <dialog id="noteDialog" class="note-dialog">
+    <form method="dialog">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">BASS PITCH</p>
+          <h2 id="noteDialogTitle">Step 1</h2>
+        </div>
+        <button value="cancel" class="icon-button" aria-label="Close">×</button>
+      </div>
+      <div id="noteOptions" class="note-grid"></div>
+    </form>
+  </dialog>
+
+  <script src="./app.js"></script>
+</body>
+</html>
