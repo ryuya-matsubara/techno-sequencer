@@ -11,7 +11,8 @@ Mobile-first techno step sequencer built with vanilla HTML/CSS/JavaScript and th
 - Per-track mute
 - Per-track clear and full-pattern clear
 - Bass pitch selection by holding an active bass step
-- Browser-local pattern save
+- Current work auto-saved in browser storage
+- Multiple named patterns can be saved, loaded, and deleted
 - Scroll-safe step tapping (vertical scrolling does not toggle steps)
 - Portrait-first mobile UI with vertically stacked tracks
 - PWA manifest + service worker for home-screen use/offline caching
