@@ -7,9 +7,9 @@
     { id: 'closedHat', name: 'Closed Hat', level: 0.42 },
     { id: 'openHat', name: 'Open Hat', level: 0.36 },
     { id: 'perc', name: 'Perc', level: 0.46 },
-    { id: 'bass', name: 'Bass', level: 0.62 },
+    { id: 'bass', name: 'Bass', level: 0.88 },
     { id: 'lead', name: 'Lead', level: 0.35 },
-    { id: 'fx', name: 'FX', level: 0.32 },
+    { id: 'fx', name: 'FX', level: 0.68 },
   ];
 
   const BASS_NOTES = ['C1','D1','D#1','F1','G1','G#1','A#1','C2','D2','D#2','F2','G2'];
@@ -432,7 +432,7 @@
     filter.frequency.setValueAtTime(620, time);
     filter.frequency.exponentialRampToValueAtTime(125, time + 0.17);
     gain.gain.setValueAtTime(0.0001, time);
-    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, volume * 0.55), time + 0.008);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, volume * 0.75), time + 0.008);
     gain.gain.exponentialRampToValueAtTime(0.0001, time + Math.min(0.25, stepDurationSeconds() * 0.9));
     osc.connect(filter).connect(gain).connect(master);
     osc.start(time); osc.stop(time + 0.3);
@@ -467,7 +467,7 @@
     filter.frequency.setValueAtTime(350, time);
     filter.frequency.exponentialRampToValueAtTime(5200, time + 0.65);
     gain.gain.setValueAtTime(0.0001, time);
-    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, volume * 0.3), time + 0.08);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, volume * 0.65), time + 0.08);
     gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.7);
     src.connect(filter).connect(gain).connect(master);
     src.start(time); src.stop(time + 0.72);
