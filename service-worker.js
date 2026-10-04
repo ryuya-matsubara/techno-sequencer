@@ -1,4 +1,4 @@
-const CACHE = 'techno-sequencer-v4';
+const CACHE = 'techno-sequencer-v5';
 const ASSETS = [
   './',
   './index.html',
