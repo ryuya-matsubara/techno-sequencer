@@ -2,32 +2,29 @@
 
 Mobile-first techno step sequencer built with vanilla HTML/CSS/JavaScript and the Web Audio API.
 
-## Phase 1 features
+## Flow
+
+1. Home screen: choose a saved pattern or create a new blank pattern.
+2. Editor: build the pattern with the 8-track step sequencer.
+3. Save: new patterns ask for a name; existing patterns are overwritten.
+4. After saving, the app returns to the home screen.
+
+Saved patterns remain browser-local using LocalStorage. Existing pattern-library data from earlier versions is preserved.
+
+## Features
 
 - 8 tracks: Kick, Clap, Closed Hat, Open Hat, Perc, Bass, Lead, FX
 - 1/8 and 1/16 resolution
 - 16 or 32 steps
 - 80–180 BPM
-- Per-track mute
-- Per-track clear and full-pattern clear
+- Per-track mute and clear
 - Bass pitch selection by holding an active bass step
-- Current work auto-saved in browser storage
-- Multiple named patterns can be saved, loaded, and deleted
-- Scroll-safe step tapping (vertical scrolling does not toggle steps)
-- Portrait-first mobile UI with vertically stacked tracks
-- PWA manifest + service worker for home-screen use/offline caching
+- Multiple named patterns
+- Scroll-safe step tapping
+- Portrait-first mobile UI
+- PWA / offline cache
 - No external audio files or JavaScript libraries
-
-## Run locally
-
-Serve the folder over HTTP (service workers do not work from `file://`). For example:
-
-```bash
-python3 -m http.server 8000
-```
-
-Then open `http://localhost:8000`.
 
 ## GitHub Pages
 
-Publish from the repository root on the `main` branch. The app uses relative paths, so it works under the `/techno-sequencer/` project path.
+Publish the repository root from `main`. The app uses relative paths and works under `/techno-sequencer/`.
