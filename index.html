@@ -11,6 +11,7 @@
   <link rel="apple-touch-icon" href="./icon.svg" />
   <link rel="icon" href="./icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./library.css" />
   <title>Techno Sequencer</title>
 </head>
 <body>
@@ -52,7 +53,7 @@
       </label>
 
       <div class="utility-buttons">
-        <button id="saveBtn" type="button">Save</button>
+        <button id="saveBtn" type="button">Save Pattern</button>
         <button id="clearBtn" class="danger" type="button">Clear all</button>
       </div>
     </section>
@@ -69,7 +70,34 @@
       <span id="status">Ready</span>
       <span id="loopInfo">1 bar · 1/16</span>
     </section>
+
+    <section class="saved-section" aria-labelledby="savedTitle">
+      <div class="saved-head">
+        <div>
+          <p class="eyebrow">LIBRARY</p>
+          <h2 id="savedTitle">Saved Patterns</h2>
+        </div>
+        <span id="savedCount" class="saved-count">0 saved</span>
+      </div>
+      <div id="savedPatterns" class="saved-patterns"></div>
+      <p id="savedEmpty" class="saved-empty">No saved patterns yet.</p>
+    </section>
   </main>
+
+  <dialog id="saveDialog" class="save-dialog">
+    <form id="saveForm">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">SAVE PATTERN</p>
+          <h2>Name this pattern</h2>
+        </div>
+        <button type="button" id="cancelSaveBtn" class="icon-button" aria-label="Close">×</button>
+      </div>
+      <label class="save-name-label" for="saveName">Pattern name</label>
+      <input id="saveName" class="pattern-name-input" type="text" maxlength="40" autocomplete="off" placeholder="e.g. Peak Time 01" />
+      <button id="confirmSaveBtn" class="primary save-confirm" type="submit">Save</button>
+    </form>
+  </dialog>
 
   <dialog id="noteDialog" class="note-dialog">
     <form method="dialog">
@@ -85,5 +113,6 @@
   </dialog>
 
   <script src="./app.js"></script>
+  <script src="./library.js"></script>
 </body>
 </html>
