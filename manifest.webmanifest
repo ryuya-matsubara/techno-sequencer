@@ -1,0 +1,19 @@
+{
+  "name": "Techno Sequencer",
+  "short_name": "Techno Seq",
+  "description": "A mobile-first 8-track techno step sequencer.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#070709",
+  "theme_color": "#0b0b0d",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
