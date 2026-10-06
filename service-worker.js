@@ -1,4 +1,4 @@
-const CACHE = 'techno-sequencer-v5';
+const CACHE = 'techno-sequencer-v6';
 const ASSETS = [
   './',
   './index.html',
@@ -10,7 +10,7 @@ const ASSETS = [
   './app.js',
   './editor.js',
   './manifest.webmanifest',
-  './icon.svg'
+  './icon.jpeg'
 ];
 
 self.addEventListener('install', event => {
