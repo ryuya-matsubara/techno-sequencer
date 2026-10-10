@@ -10,7 +10,7 @@ input[type=range]{accent-color:var(--accent);padding:0;min-height:25px;width:100
 .brand{justify-content:space-between}.name{min-width:0;flex:1}.eyebrow{color:var(--accent);font-size:10px;font-weight:900;letter-spacing:.15em}.song-name{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:3px 0;min-height:30px;max-width:100%;border:0;background:none;text-align:left;font-size:clamp(23px,6vw,32px);font-weight:850;letter-spacing:-.04em}
 .song-name span{color:var(--muted);font-size:15px}.back{display:grid;place-items:center;text-decoration:none;color:var(--text);border:1px solid var(--border);background:var(--panel2);border-radius:10px;width:43px;height:43px;font-size:29px}
 .transport{flex-wrap:wrap}.transport>button{flex:1}.bpm-label{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:11px;font-weight:800}.bpm-label input{width:65px;color:var(--text);font-size:15px;text-align:center}.play-position{font-variant-numeric:tabular-nums;font-weight:800;color:var(--accent);min-width:62px;text-align:right}
- .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:15px 0}.tabs button{min-width:0;padding:10px 1px;min-height:42px;font-size:11px;letter-spacing:.03em}.tabs button.selected{background:var(--accent);border-color:var(--accent);color:#121212}
+ .tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin:15px 0}.tabs button{min-width:0;padding:10px 1px;min-height:42px;font-size:11px;letter-spacing:.03em}.tabs button.selected{background:var(--accent);border-color:var(--accent);color:#121212}
 .panel{border:1px solid var(--border);border-radius:16px;background:var(--panel);padding:12px}.panel[hidden]{display:none}
 .section-head{justify-content:space-between;align-items:flex-start;margin-bottom:12px}h2{margin:0 0 5px;font-size:20px}h3{margin:0}.section-head p,.hint{margin:0;color:var(--muted);font-size:11px;line-height:1.5}.hint{margin:12px 0 2px}.section-head button{flex:none}
 .section-tools{flex-wrap:wrap;margin:0 0 12px;align-items:end}.section-tools label,.sound-track-picker{display:grid;gap:5px;color:var(--muted);font-size:11px;font-weight:750}.section-tools button{font-size:12px}
@@ -35,7 +35,17 @@ input[type=range]{accent-color:var(--accent);padding:0;min-height:25px;width:100
 .status{display:flex;justify-content:space-between;gap:8px;margin:12px 2px;color:var(--muted);font-size:10px;flex-wrap:wrap}.status span:first-child{color:var(--accent)}
 .action-dialog{width:min(400px,calc(100% - 24px));max-height:calc(100dvh - 50px);border:1px solid var(--border);border-radius:17px;background:#141419;color:var(--text);padding:0}.action-dialog::backdrop{background:rgba(0,0,0,.75)}.dialog-body{padding:15px;display:grid;gap:9px}.dialog-top{justify-content:space-between}.dialog-body>button{width:100%;text-align:left}.dialog-body .danger{color:var(--danger)}.inline-select{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}.move-row>*{flex:1}
 @media(max-width:380px){.studio{padding-left:8px;padding-right:8px}.brand{gap:6px}.tabs button{font-size:10px}.transport>button{padding:6px}}
-\n.section-tools[hidden]{display:none}\n
-.tabs[hidden]{display:none}
+
+.section-tools[hidden]{display:none}
+
+.tabs[hidden]{display:none !important}
 .fixed-pattern-length{display:grid;gap:5px;min-width:132px;color:var(--muted);font-size:11px;font-weight:750}
 .fixed-pattern-length strong{display:flex;align-items:center;min-height:40px;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:12px;font-weight:800}
+
+/* Clip editing: instrument volume belongs to the Pattern, never to a global Mixer. */
+.pattern-volume{flex:1;min-width:160px;max-width:330px}
+.volume-row{display:flex;align-items:center;gap:9px;min-height:40px}
+.volume-row input[type="range"]{min-width:0;flex:1}
+.volume-row output{min-width:43px;text-align:right;font-size:12px;font-weight:800;color:var(--text)}
+/* Make fixed four-bar drum editing legible in every viewport size. */
+.drum-grid .bar-divider:not(:first-child){border-top:1px solid var(--border);margin-top:8px}

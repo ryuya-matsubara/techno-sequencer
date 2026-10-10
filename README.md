@@ -10,8 +10,8 @@ Mobile-first, offline-capable techno song arranger based on Web Audio API. No pa
 - Clip length options: 4, 8, 16 or 32 bars (each clip repeats its fixed 4-bar pattern). Older short clips retain their arrangement length to prevent unexpected changes
 - All patterns are fixed at 4 bars (64 sixteenth-note steps); no pattern length selection. Legacy 1- and 2-bar patterns are expanded by repeating their original note data
 - Bass/Lead piano roll with note pitch and note duration; polyphonic lead, monophonic bass
-- Track mixer for volume and mute (no panning)
-- Track sound presets and three sound-shaping controls, with Japanese help text
+- Selected instrument volume is adjusted directly inside PATTERN (no separate MIXER tab)
+- SOUND tab automatically targets the selected clip instrument (no track selector), with presets and 3 explained parameters
 - Song tempo 60–200 BPM, song length 16/32/64/128 bars; Song playback advances through the full arrangement, while Pattern/Mixer/Sound playback loops only the selected 4-bar clip
 - Per-song JSON download and JSON import (no Starter Beat button)
 - Auto-save in browser storage, PWA/offline support
@@ -20,9 +20,9 @@ Mobile-first, offline-capable techno song arranger based on Web Audio API. No pa
 ### Editing
 
 1. Select **New Song**. The song arrangement opens directly, without tabs. Tap an empty four-bar slot to add a clip.
-2. Tap a clip to enter **PATTERN / MIXER / SOUND** mode. The top-left back arrow returns to the full Song arrangement. For drums, tap steps to toggle; for bass/lead, pick note length and place notes on the piano roll.
+2. Tap a clip to enter **PATTERN / SOUND** mode. The top-left back arrow returns to the full Song arrangement. For drums, tap steps to toggle; for bass/lead, pick note length and place notes on the piano roll.
 3. Return using the **top-left back arrow** to position more clips. Long-press a clip to duplicate independently, move by four bars or change its length.
-4. Use **MIXER** to adjust volume/mute and **SOUND** to pick a preset and edit simple sound parameters.
+4. Use the selected instrument's **Volume** slider in PATTERN, or **SOUND** to pick a preset and edit simple sound parameters.
 5. Songs auto-save locally. On the home screen, choose **Download JSON** for one song, or **Import JSON** to load a song without overwriting another.
 
 Audio export, automation, effects, stereo panning and bulk downloads are deliberately excluded.

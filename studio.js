@@ -12,7 +12,8 @@
     timeline:$('#timeline'),tabs:[...document.querySelectorAll('.tabs button')],
     patternTitle:$('#patternTitle'),patternSub:$('#patternSub'),patternGrid:$('#patternGrid'),
     noteLength:$('#noteLength'),noteLengthLabel:$('#noteLengthLabel'),
-    mixer:$('#mixerRows'),soundTrack:$('#soundTrack'),soundEditor:$('#soundEditor'),
+    volume:$('#patternVolume'),volumeValue:$('#patternVolumeValue'),instrument:$('#patternInstrument'),
+    soundTitle:$('#soundTitle'),soundEditor:$('#soundEditor'),
     menu:$('#clipMenu'),menuTitle:$('#clipMenuTitle'),menuLength:$('#menuLength')
   };
   function message(txt){el.status.textContent=txt;}
@@ -46,11 +47,10 @@
     el.back.setAttribute('aria-label',nowSong?'楽曲一覧に戻る':'SONGに戻る');
     el.back.setAttribute('title',nowSong?'My Songs':'Back to Song');
     el.tabs.forEach(b=>b.classList.toggle('selected',b.dataset.tab===target));
-    ['song','pattern','mixer','sound'].forEach(t=>{
+    ['song','pattern','sound'].forEach(t=>{
       $('#'+t+'Panel').hidden=t!==target;
     });
     if(target==='pattern')renderPattern();
-    if(target==='mixer')renderMixer();
     if(target==='sound')renderSound();
     if(wasSong!==nowSong && audio.playing)startPlayback();
     else if(wasSong!==nowSong && !nowSong)onProgress(-1);
@@ -183,6 +183,9 @@
     $('#patternControls').hidden=false;
     el.patternTitle.textContent=r.meta.name+' — Pattern';
     el.patternSub.textContent='Bars '+(r.clip.startBar+1)+'–'+(r.clip.startBar+r.clip.lengthBars)+' · 4小節の演奏を繰り返します';
+    el.instrument.textContent=r.meta.name;
+    el.volume.value=String(r.track.volume);
+    el.volumeValue.textContent=r.track.volume+'%';
     el.noteLengthLabel.style.display=r.meta.type==='melody'?'grid':'none';
     if(r.meta.type==='drum')renderDrums(r);
     else renderPiano(r);
@@ -277,34 +280,14 @@
     hint.textContent=r.track.id==='bass'?'Bassは同時に1音だけ鳴ります。':'Leadは複数音を同時に重ねられます。';
     el.patternGrid.append(hint);
   }
-  function renderMixer(){
-    el.mixer.replaceChildren();
-    tracks.forEach(meta=>{
-      const t=song.tracks.find(x=>x.id===meta.id);
-      const card=document.createElement('div');card.className='mixer-card';
-      const top=document.createElement('div');top.className='mixer-title';
-      const title=document.createElement('span');title.className='mixer-name';
-      const dot=document.createElement('span');dot.className='track-dot';dot.style.background=meta.color;
-      title.append(dot,document.createTextNode(meta.name));
-      const mute=document.createElement('button');mute.type='button';mute.className='mute-btn'+(t.muted?' active':'');
-      mute.textContent=t.muted?'Muted':'Mute';
-      mute.addEventListener('click',()=>{t.muted=!t.muted;save();renderMixer();});
-      top.append(title,mute);
-      const range=document.createElement('input');range.type='range';range.min=0;range.max=150;range.step=1;range.value=t.volume;
-      range.setAttribute('aria-label',meta.name+' 音量');
-      const value=document.createElement('span');value.textContent=t.volume+'%';
-      const bottom=document.createElement('div');bottom.className='slider-title';bottom.append(range,value);
-      range.addEventListener('input',()=>{t.volume=Number(range.value);value.textContent=range.value+'%';save();});
-      card.append(top,bottom);el.mixer.append(card);
-    });
-  }
   function renderSound(){
-    const previous=el.soundTrack.value || 'bass';
-    el.soundTrack.replaceChildren();
-    tracks.forEach(meta=>{
-      const option=document.createElement('option');option.value=meta.id;option.textContent=meta.name;el.soundTrack.append(option);
-    });
-    el.soundTrack.value=tracks.some(m=>m.id===previous)?previous:'bass';
+    const r=findSelection();
+    el.soundEditor.replaceChildren();
+    if(!r){
+      el.soundTitle.textContent='Sound';
+      return;
+    }
+    el.soundTitle.textContent=r.meta.name+' — Sound';
     renderSoundSettings();
   }
   const profile={
@@ -313,9 +296,11 @@
     'Classic Lead':[60,40,20],'Bright Lead':[90,45,15],'Soft Lead':[30,75,65],'Pluck Lead':[75,25,5]
   };
   function renderSoundSettings(){
-    const meta=tracks.find(t=>t.id===el.soundTrack.value)||tracks[0];
-    const track=song.tracks.find(t=>t.id===meta.id);
+    const r=findSelection();
     el.soundEditor.replaceChildren();
+    if(!r)return;
+    const meta=r.meta;
+    const track=r.track;
     const presetBox=document.createElement('div');presetBox.className='sound-box';
     const heading=document.createElement('label');heading.textContent='Sound Preset';
     const select=document.createElement('select');
@@ -408,8 +393,14 @@
     if(selected?.clip===r.clip.id)selected=null;
     save();renderTimeline();closeMenu();message('クリップを削除しました。');
   });
-  el.soundTrack.addEventListener('change',renderSoundSettings);
+  el.volume.addEventListener('input',()=>{
+    const r=findSelection();
+    if(!r)return;
+    r.track.volume=Number(el.volume.value);
+    el.volumeValue.textContent=r.track.volume+'%';
+    save();
+  });
   document.addEventListener('visibilitychange',()=>{if(document.hidden&&audio.playing)audio.stop();});
-  updateHeader();renderTimeline();renderSound();switchTab('song');
+  updateHeader();renderTimeline();switchTab('song');
   if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(console.warn));
 })();
