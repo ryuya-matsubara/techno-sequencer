@@ -11,7 +11,7 @@
     constructor() {
       this.ctx=null; this.outputs={}; this.song=null; this.playing=false;
       this.timer=null; this.drawTimers=new Set(); this.onStep=null;
-      this.position=0; this.nextTime=0;
+      this.position=0; this.nextTime=0; this.preview=null; this.generation=0;
     }
     init() {
       if(this.ctx) return;
@@ -36,14 +36,17 @@
         if(out)out.gain.setTargetAtTime(t.muted?0:(t.volume/100)*(meta?.level||.5),this.ctx.currentTime,.013);
       });
     }
-    async play(song,onStep) {
+    async play(song,onStep,preview=null) {
       this.stop();
-      this.song=song; this.onStep=onStep; this.init();
+      const generation=this.generation;
+      this.song=song; this.onStep=onStep; this.preview=preview; this.init();
       if(this.ctx.state==='suspended')await this.ctx.resume();
+      if(generation!==this.generation)return;
       this.position=0;this.nextTime=this.ctx.currentTime+.08;
       this.playing=true;this.updateMix();this.tick();
     }
     stop() {
+      this.generation++;
       this.playing=false;
       clearTimeout(this.timer);this.timer=null;
       this.drawTimers.forEach(t=>clearTimeout(t));this.drawTimers.clear();
@@ -53,7 +56,7 @@
       if(!this.playing||!this.song)return;
       const duration=60/this.song.bpm/4;
       while(this.nextTime<this.ctx.currentTime+.13) {
-        if(this.position>=this.song.bars*16) {
+        if(this.position>=(this.preview?D.PATTERN_BARS:this.song.bars)*16) {
           this.position=0;
         }
         const step=this.position;
@@ -64,15 +67,26 @@
       this.timer=setTimeout(()=>this.tick(),24);
     }
     schedule(globalStep,time,stepSeconds) {
-      this.song.tracks.forEach(t=>{
-        if(t.muted||t.volume<=0)return;
-        const clip=t.clips.find(c=>globalStep>=c.startBar*16&&globalStep<(c.startBar+c.lengthBars)*16);
-        if(!clip)return;
-        const inner=(globalStep-clip.startBar*16)%(clip.patternBars*16);
-        clip.notes.forEach(note=>{
-          if(note.start===inner)this.trigger(t,time,stepSeconds,note);
+      if(this.preview){
+        // Pattern mode auditions only the selected clip for exactly four bars.
+        const track=this.song.tracks.find(t=>t.id===this.preview.trackId);
+        const clip=track?.clips.find(c=>c.id===this.preview.clipId);
+        if(track&&clip&&!track.muted&&track.volume>0){
+          clip.notes.forEach(note=>{
+            if(note.start===globalStep)this.trigger(track,time,stepSeconds,note);
+          });
+        }
+      } else {
+        this.song.tracks.forEach(t=>{
+          if(t.muted||t.volume<=0)return;
+          const clip=t.clips.find(c=>globalStep>=c.startBar*16&&globalStep<(c.startBar+c.lengthBars)*16);
+          if(!clip)return;
+          const inner=(globalStep-clip.startBar*16)%(D.PATTERN_BARS*16);
+          clip.notes.forEach(note=>{
+            if(note.start===inner)this.trigger(t,time,stepSeconds,note);
+          });
         });
-      });
+      }
       const timer=setTimeout(()=>{
         this.drawTimers.delete(timer);
         if(this.playing)this.onStep?.(globalStep);
