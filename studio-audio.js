@@ -66,18 +66,34 @@
 
       // The resume call starts synchronously within the actual tap handler.
       // Safari also reports "interrupted", not only "suspended".
-      if(this.ctx.state!=='running'){
-        await this.ctx.resume();
-        if(generation!==this.generation)return;
+      async function resumeWithDeadline(ctx) {
+        let timeout;
+        try {
+          await Promise.race([
+            ctx.resume(),
+            new Promise((_,reject)=>{
+              timeout=setTimeout(()=>reject(new Error('音声を再開できません。もう一度Playを押してください。')),1800);
+            })
+          ]);
+        } finally {
+          clearTimeout(timeout);
+        }
       }
-      if(this.ctx.state!=='running'){
-        // One fresh-context retry if the old context could not be revived.
-        this.rebuildContext();
-        if(this.ctx.state!=='running')await this.ctx.resume();
+      try {
+        if(this.ctx.state!=='running')await resumeWithDeadline(this.ctx);
         if(generation!==this.generation)return;
+        if(this.ctx.state!=='running'){
+          // Safari can resolve resume() while remaining interrupted.
+          this.rebuildContext();
+          if(this.ctx.state!=='running')await resumeWithDeadline(this.ctx);
+          if(generation!==this.generation)return;
+        }
+        if(this.ctx.state!=='running')
+          throw new Error('音声が開始できません。もう一度Playを押してください。');
+      } catch(err) {
+        this.needsRecovery=true;
+        throw err;
       }
-      if(this.ctx.state!=='running')
-        throw new Error('音声が開始できません。もう一度Playを押してください。');
 
       const steps=(preview?D.PATTERN_BARS:song.bars)*16;
       this.position=Math.max(0,Math.min(steps-1,Math.floor(Number(startStep)||0)));
