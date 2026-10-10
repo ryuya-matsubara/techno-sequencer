@@ -226,7 +226,7 @@
     const newScroll=el.patternGrid.querySelector('.piano-scroll');
     if(newScroll&&preserveScroll){newScroll.scrollLeft=left;newScroll.scrollTop=top;}
     $('#patternHint').textContent=r.meta.type==='melody'
-      ?'半ビート（8分音符）刻み。横スクロールは上の拍目盛り、右ドラッグで音を伸ばせます。タップで追加・削除。'
+      ?'半ビート（8分音符）刻み。左右スワイプでスクロール。音符を長押ししてから右へスライドすると伸ばせます。'
       :'黄色のステップで音が鳴ります。タップしてON/OFFを切り替えます。';
   }
   function toggleDrum(step){

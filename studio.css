@@ -66,3 +66,6 @@ input[type=range]{accent-color:var(--accent);padding:0;min-height:25px;width:100
 .timeline-ruler{cursor:pointer;touch-action:pan-x;user-select:none;-webkit-user-select:none}
 .ruler-playhead{position:absolute;top:0;bottom:0;width:2px;background:var(--accent);z-index:1;pointer-events:none;box-shadow:0 0 0 1px rgba(0,0,0,.45)}
 .ruler-playhead::before{content:"";position:absolute;top:0;left:-4px;width:10px;height:8px;border-radius:0 0 3px 3px;background:var(--accent)}
+
+/* Suppress iOS long-press callouts when stretching piano notes. */
+.halfbar-scroll .piano-row .piano-cell{-webkit-touch-callout:none;touch-action:pan-y}
