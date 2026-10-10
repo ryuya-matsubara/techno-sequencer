@@ -120,20 +120,25 @@
           return;
         }
         case 'clap': {
-          const len=.06+decay*.24;
-          [0,.013,.027].forEach((offset,i)=>this.noiseHit(time+offset,len*(i? .7:1),(.35+punch*.26)*(1-i*.17),700+tone*4800,'bandpass',out));
+          const sharp=preset==='Sharp Clap',wide=preset==='Wide Clap';
+          const len=(.06+decay*.24)*(sharp?.62:wide?1.3:1);
+          const bursts=sharp?[0,.01]:wide?[0,.014,.028,.055]:[0,.013,.027];
+          bursts.forEach((offset,i)=>this.noiseHit(time+offset,len*(i? .7:1),(.35+punch*.26)*(1-i*.14),700+tone*4800+(sharp?1400:wide?-250:0),'bandpass',out));
           return;
         }
         case 'closedHat':
         case 'openHat': {
           const opened=track.id==='openHat';
-          const len=opened ? (.12+decay*.65) : (.025+decay*.16);
-          this.noiseHit(time,len,.25+punch*.21,2400+tone*9000,'highpass',out);
+          const soft=preset==='Soft Hat'||preset==='Dark Hat';
+          const bright=preset==='Bright Hat'||preset==='Airy Hat';
+          const len=(opened ? (.12+decay*.65) : (.025+decay*.16))*(soft?1.18:bright?.85:1);
+          const cutoff=(2400+tone*8500)*(soft?.65:bright?1.25:1);
+          this.noiseHit(time,len,.25+punch*.21,Math.min(14000,cutoff),'highpass',out);
           return;
         }
         case 'perc': {
           const end=.05+decay*.28;
-          const osc=this.osc(preset==='Metal Perc'?'square':'triangle',130+tone*380,time,time+end+.02,gain,out,.7);
+          const osc=this.osc(preset==='Metal Perc'?'square':preset==='Wood Perc'?'sine':'triangle',130+tone*380,time,time+end+.02,gain,out,.7);
           osc.frequency.exponentialRampToValueAtTime(75+tone*90,time+.09);
           this.env(gain,time,.4+punch*.32,end);
           return;
@@ -162,9 +167,9 @@
           const len=.2+decay*.9;
           const src=ctx.createBufferSource();
           filter.type='bandpass';filter.Q.value=1.6;
-          const startF=preset==='Dark Sweep'?90:220+tone*400;
+          const startF=preset==='Dark Sweep'?90:preset==='Bright Sweep'?600:220+tone*400;
           filter.frequency.setValueAtTime(startF,time);
-          filter.frequency.exponentialRampToValueAtTime(1300+tone*8500,time+len*.9);
+          filter.frequency.exponentialRampToValueAtTime((preset==='Bright Sweep'?3500:1300)+tone*8500,time+len*.9);
           src.buffer=this.noise;
           this.env(gain,time,.09+punch*.17,len,Math.min(.02+decay*.09,len*.4));
           src.connect(filter).connect(gain).connect(out);
