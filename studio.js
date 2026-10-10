@@ -5,7 +5,7 @@
   let song=D.getSong(id);
   if(!song){location.replace('./');return;}
   const audio=new window.TechnoAudio();
-  let selected=null, menuSelection=null, noteDuration=2, tab='song', currentBar=-1;
+  let selected=null, menuSelection=null, noteDuration=2, tab='song', currentBar=-1, startBar=0;
   const el={
     back:$('#backLink'),editTabs:$('#editTabs'),rename:$('#renameSong'),save:$('#saveBtn'),play:$('#playBtn'),stop:$('#stopBtn'),
     bpm:$('#bpm'),position:$('#position'),status:$('#status'),bars:$('#songBars'),
@@ -17,6 +17,7 @@
     menu:$('#clipMenu'),menuTitle:$('#clipMenuTitle'),menuLength:$('#menuLength')
   };
   function message(txt){el.status.textContent=txt;}
+  audio.onFailure=text=>message(text);
   function save(){
     try{D.saveSong(song);if(audio.playing){audio.song=song;audio.updateMix();}}
     catch(e){message('保存失敗: '+e.message);}
@@ -35,8 +36,10 @@
     if(tab!=='song'&&!findSelection()){
       message('SONG画面からクリップを選択してください。');return;
     }
-    return audio.play(song,onProgress,playbackSelection())
-      .then(()=>{if(audio.playing)message(tab==='song'?'Playing song':'Looping 4-bar pattern');})
+    const fromBar=tab==='song'?startBar:0;
+    message('音声を準備しています…');
+    return audio.play(song,onProgress,playbackSelection(),fromBar*16)
+      .then(()=>{if(audio.playing)message(tab==='song'?'Playing from bar '+(fromBar+1):'Looping 4-bar pattern');})
       .catch(e=>message('再生エラー: '+e.message));
   }
   function switchTab(target){
@@ -60,7 +63,7 @@
     el.rename.firstChild.textContent=song.name+' ';
     el.bpm.value=song.bpm;
     el.bars.value=song.bars;
-    el.position.textContent=(currentBar<0?1:currentBar+1)+' / '+(tab==='song'?song.bars:D.PATTERN_BARS);
+    el.position.textContent=(currentBar<0?(tab==='song'?startBar+1:1):currentBar+1)+' / '+(tab==='song'?song.bars:D.PATTERN_BARS);
   }
   function renderTimeline(){
     el.timeline.replaceChildren();
@@ -68,6 +71,37 @@
     const row=document.createElement('div');row.className='timeline-header';
     const corner=document.createElement('div');corner.className='timeline-corner';corner.textContent='TRACK / BAR';
     const ruler=document.createElement('div');ruler.className='timeline-ruler';ruler.style.width=(song.bars*BAR)+'px';
+    ruler.setAttribute('role','button');
+    ruler.setAttribute('tabindex','0');
+    ruler.setAttribute('aria-label','小節をタップするとその位置から再生します');
+    const playhead=document.createElement('span');
+    playhead.className='ruler-playhead';playhead.setAttribute('aria-hidden','true');
+    playhead.style.left=((currentBar>=0?currentBar:startBar)*BAR)+'px';
+    ruler.append(playhead);
+    ruler.addEventListener('click',event=>{
+      // Only the ruler seeks. Tapping empty track lanes still adds clips.
+      const rect=ruler.getBoundingClientRect();
+      startBar=Math.max(0,Math.min(song.bars-1,Math.floor((event.clientX-rect.left)/BAR)));
+      currentBar=startBar;
+      updateHeader();
+      playhead.style.left=(startBar*BAR)+'px';
+      startPlayback();
+    });
+    ruler.addEventListener('keydown',event=>{
+      if(event.key==='Enter'||event.key===' '){
+        event.preventDefault();
+        startBar=Math.max(0,Math.min(song.bars-1,startBar));
+        currentBar=startBar;
+        startPlayback();
+      }
+      if(event.key==='ArrowLeft'||event.key==='ArrowRight'){
+        event.preventDefault();
+        startBar=Math.max(0,Math.min(song.bars-1,startBar+(event.key==='ArrowRight'?1:-1)));
+        currentBar=startBar;
+        updateHeader();
+        playhead.style.left=(startBar*BAR)+'px';
+      }
+    });
     for(let b=0;b<song.bars;b+=4){
       const m=document.createElement('span');m.className='bar-marker';m.style.left=(b*BAR)+'px';m.textContent=String(b+1);
       ruler.append(m);
@@ -292,6 +326,8 @@
     document.querySelectorAll('.clip').forEach(c=>c.classList.toggle(
       'is-now',tab==='song'&&currentBar>=Number(c.dataset.start)&&currentBar<Number(c.dataset.end)
     ));
+    const marker=document.querySelector('.ruler-playhead');
+    if(marker&&tab==='song')marker.style.left=((currentBar<0?startBar:currentBar)*BAR)+'px';
     document.querySelectorAll('.drum-cell.playing,.piano-cell.playing').forEach(c=>c.classList.remove('playing'));
     if(step<0 || tab==='song')return;
     const index=step%(D.PATTERN_BARS*16);
@@ -317,7 +353,7 @@
       message('範囲外のクリップがあります。先に移動・削除してください。');
       el.bars.value=String(song.bars);return;
     }
-    song.bars=next;save();renderTimeline();updateHeader();
+    song.bars=next;startBar=Math.min(startBar,next-1);save();renderTimeline();updateHeader();
   });
   el.play.addEventListener('click',startPlayback);
   el.stop.addEventListener('click',()=>{audio.stop();message('Stopped');});
@@ -347,7 +383,12 @@
     el.volumeValue.textContent=r.track.volume+'%';
     save();
   });
-  document.addEventListener('visibilitychange',()=>{if(document.hidden&&audio.playing)audio.stop();});
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden){
+      if(audio.playing)audio.stop();
+      audio.markForRecovery();
+    }
+  });
   updateHeader();renderTimeline();switchTab('song');
   if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(console.warn));
 })();

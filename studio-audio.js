@@ -12,9 +12,10 @@
       this.ctx=null; this.outputs={}; this.song=null; this.playing=false;
       this.timer=null; this.drawTimers=new Set(); this.onStep=null;
       this.position=0; this.nextTime=0; this.preview=null; this.generation=0;
+      this.needsRecovery=false; this.clockWatch=null; this.onFailure=null;
     }
     init() {
-      if(this.ctx) return;
+      if(this.ctx&&this.ctx.state!=='closed') return;
       const Ctx=window.AudioContext||window.webkitAudioContext;
       if(!Ctx) throw new Error('このブラウザは音声再生に対応していません。');
       const ctx=new Ctx();
@@ -28,6 +29,22 @@
       for(let i=0;i<samples.length;i++)samples[i]=Math.random()*2-1;
       this.ctx=ctx; this.noise=noise;
     }
+    // iOS may leave a previously used AudioContext interrupted or silent
+    // after the app loses focus. Rebuild on the next user-initiated Play.
+    markForRecovery() {
+      this.needsRecovery=true;
+    }
+    rebuildContext() {
+      const old=this.ctx;
+      this.ctx=null;this.outputs={};this.noise=null;
+      if(old&&old.state!=='closed') {
+        try {
+          const closing=old.close();
+          closing?.catch?.(()=>{});
+        } catch(error) { console.warn('Unable to close previous AudioContext',error); }
+      }
+      this.init();
+    }
     updateMix() {
       if(!this.ctx||!this.song)return;
       this.song.tracks.forEach(t=>{
@@ -36,19 +53,71 @@
         if(out)out.gain.setTargetAtTime(t.muted?0:(t.volume/100)*(meta?.level||.5),this.ctx.currentTime,.013);
       });
     }
-    async play(song,onStep,preview=null) {
+    async play(song,onStep,preview=null,startStep=0) {
       this.stop();
       const generation=this.generation;
-      this.song=song; this.onStep=onStep; this.preview=preview; this.init();
-      if(this.ctx.state==='suspended')await this.ctx.resume();
-      if(generation!==this.generation)return;
-      this.position=0;this.nextTime=this.ctx.currentTime+.08;
+      this.song=song;this.onStep=onStep;this.preview=preview;
+      // Rebuild after visibility loss or interruption; reusing an apparently
+      // "running" but frozen iOS context can result in a silent Play.
+      if(this.needsRecovery||this.ctx?.state==='interrupted'||this.ctx?.state==='closed')
+        this.rebuildContext();
+      else this.init();
+      this.needsRecovery=false;
+
+      // The resume call starts synchronously within the actual tap handler.
+      // Safari also reports "interrupted", not only "suspended".
+      async function resumeWithDeadline(ctx) {
+        let timeout;
+        try {
+          await Promise.race([
+            ctx.resume(),
+            new Promise((_,reject)=>{
+              timeout=setTimeout(()=>reject(new Error('音声を再開できません。もう一度Playを押してください。')),1800);
+            })
+          ]);
+        } finally {
+          clearTimeout(timeout);
+        }
+      }
+      try {
+        if(this.ctx.state!=='running')await resumeWithDeadline(this.ctx);
+        if(generation!==this.generation)return;
+        if(this.ctx.state!=='running'){
+          // Safari can resolve resume() while remaining interrupted.
+          this.rebuildContext();
+          if(this.ctx.state!=='running')await resumeWithDeadline(this.ctx);
+          if(generation!==this.generation)return;
+        }
+        if(this.ctx.state!=='running')
+          throw new Error('音声が開始できません。もう一度Playを押してください。');
+      } catch(err) {
+        this.needsRecovery=true;
+        throw err;
+      }
+
+      const steps=(preview?D.PATTERN_BARS:song.bars)*16;
+      this.position=Math.max(0,Math.min(steps-1,Math.floor(Number(startStep)||0)));
+      this.nextTime=this.ctx.currentTime+.06;
       this.playing=true;this.updateMix();this.tick();
+      // Some iOS Web Audio contexts report "running" while their clock is
+      // frozen after an interruption. Detect that rather than showing Play
+      // indefinitely with no sound; rebuild on the user's next tap.
+      const ctx=this.ctx, startedAt=ctx.currentTime;
+      this.clockWatch=setTimeout(()=>{
+        this.clockWatch=null;
+        if(generation!==this.generation||!this.playing||this.ctx!==ctx)return;
+        if(ctx.currentTime-startedAt<0.08){
+          this.stop();
+          this.needsRecovery=true;
+          this.onFailure?.('音声が中断されました。もう一度Playを押してください。');
+        }
+      },900);
     }
     stop() {
       this.generation++;
       this.playing=false;
       clearTimeout(this.timer);this.timer=null;
+      clearTimeout(this.clockWatch);this.clockWatch=null;
       this.drawTimers.forEach(t=>clearTimeout(t));this.drawTimers.clear();
       this.onStep?.(-1);
     }

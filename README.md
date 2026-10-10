@@ -5,7 +5,7 @@ Mobile-first, offline-capable techno song arranger based on Web Audio API. No pa
 ## Features
 
 - 8 tracks: Kick, Clap, Closed Hat, Open Hat, Perc, Bass, Lead, FX
-- Arrangement timeline is the only view on Song screen; tap an empty 4-bar slot to create a clip, tap clips to edit, or long-press for duplicate, move, length and delete
+- Arrangement timeline is the only view on Song screen; tap the TRACK / BAR ruler to start playback from a specific bar, tap an empty 4-bar slot to create a clip, tap clips to edit, or long-press for duplicate, move, length and delete
 - Independent clips: duplication copies notes; editing the copy does not change the original
 - Clip length options: 4, 8, 16 or 32 bars (each clip repeats its fixed 4-bar pattern). Older short clips retain their arrangement length to prevent unexpected changes
 - All patterns are fixed at 4 bars (64 sixteenth-note steps); no pattern length selection. Legacy 1- and 2-bar patterns are expanded by repeating their original note data
