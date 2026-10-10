@@ -43,8 +43,24 @@
   function createSong(name='Untitled Song') {
     return {format:FORMAT, version:2, id:uid(), name:String(name).slice(0,60), bpm:140, bars:32, tracks:TRACKS.map(newTrack), updatedAt:Date.now()};
   }
-  function newClip(startBar=0,lengthBars=4,patternBars=1,notes=[]) {
-    return {id:uid(),startBar,lengthBars,patternBars,notes:copy(notes)};
+  const PATTERN_BARS = 4;
+  function expandToFourBars(notes, originalBars) {
+    // Older JSON may contain 1 or 2 bar loops. Repeat the original phrase
+    // to fill a fixed four-bar pattern while preserving its audible timing.
+    if (originalBars === PATTERN_BARS) return notes;
+    const period=originalBars*16;
+    const expanded=[];
+    for(let offset=0;offset<64;offset+=period) {
+      for(const note of notes) {
+        if(expanded.length>=2048) break;
+        expanded.push({...note,start:note.start+offset});
+      }
+    }
+    return expanded;
+  }
+  function newClip(startBar=0,lengthBars=4,patternBars=PATTERN_BARS,notes=[]) {
+    const sourceBars=[1,2,4].includes(patternBars)?patternBars:PATTERN_BARS;
+    return {id:uid(),startBar,lengthBars,patternBars:PATTERN_BARS,notes:copy(expandToFourBars(notes,sourceBars))};
   }
   function readRaw() {
     try { const raw=JSON.parse(localStorage.getItem(KEY)); return Array.isArray(raw)?raw:[]; }
@@ -68,13 +84,14 @@
       dst.sound.params=Array.from({length:3},(_,j)=>clamp(src.sound?.params?.[j]??50,0,100));
       dst.clips=Array.isArray(src.clips)?src.clips.slice(0,256).map(c=>{
         if (!c || typeof c!=='object') return null;
-        const patternBars=[1,2,4].includes(c.patternBars)?c.patternBars:1;
+        const originalBars=[1,2,4].includes(c.patternBars)?c.patternBars:1;
+        const patternBars=PATTERN_BARS;
         const startBar=Math.floor(clamp(c.startBar,0,song.bars-1));
         const lengthBars=Math.floor(clamp(c.lengthBars,1,song.bars-startBar));
-        const notes=Array.isArray(c.notes)?c.notes.slice(0,2048).map(n=>{
+        const sourceNotes=Array.isArray(c.notes)?c.notes.slice(0,2048).map(n=>{
           if (!n || typeof n!=='object') return null;
-          const start=Math.floor(clamp(n.start,0,patternBars*16-1));
-          const duration=Math.floor(clamp(n.duration||1,1,patternBars*16-start));
+          const start=Math.floor(clamp(n.start,0,originalBars*16-1));
+          const duration=Math.floor(clamp(n.duration||1,1,originalBars*16-start));
           if (meta.type==='melody') {
             const pitch=typeof n.pitch==='string'?n.pitch:'C3';
             if (!/^[A-G]#?[0-7]$/.test(pitch)) return null;
@@ -82,6 +99,7 @@
           }
           return {start,duration:1};
         }).filter(Boolean):[];
+        const notes=expandToFourBars(sourceNotes,originalBars);
         return {id:makeNewId?uid():String(c.id||uid()),startBar,lengthBars,patternBars,notes};
       }).filter(Boolean):[];
       // Resolve conflicting imported clips deterministically.
@@ -130,7 +148,7 @@
       localStorage.setItem(MIGRATION_KEY,'1');
     } catch(err) { console.warn('Legacy migration skipped',err); }
   }
-  function getSongs() { migrateOld(); return readRaw(); }
+  function getSongs() { migrateOld(); return readRaw().map(s=>normalizeSong(s)); }
   function getSong(id) { return getSongs().find(s=>s.id===id)||null; }
   function saveSong(song) {
     const clean=normalizeSong(song);
@@ -160,5 +178,5 @@
     song.name=(song.name||'Imported Song').slice(0,60);
     return saveSong(song);
   }
-  window.TechnoData={KEY,TRACKS,PRESETS,PARAMETERS,createSong,newClip,getSongs,getSong,saveSong,removeSong,exportSong,importSong,copy,clamp,uid};
+  window.TechnoData={KEY,TRACKS,PRESETS,PARAMETERS,PATTERN_BARS,createSong,newClip,getSongs,getSong,saveSong,removeSong,exportSong,importSong,copy,clamp,uid};
 })();
