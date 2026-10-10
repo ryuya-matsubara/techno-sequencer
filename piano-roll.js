@@ -197,7 +197,7 @@
       }
       if(drag.mode==='extend'){
         // Ends snap to half-beat boundaries, preserving older odd note starts.
-        drag.end=Math.max(drag.start+STEP,(pointerCol(e.clientX)+1)*STEP);
+        drag.end=Math.max(drag.end,drag.start+STEP,(pointerCol(e.clientX)+1)*STEP);
         preview();
         edgeScroll(e.clientX);
       }
