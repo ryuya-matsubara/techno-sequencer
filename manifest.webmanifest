@@ -1,7 +1,7 @@
 {
   "name": "Techno Sequencer",
   "short_name": "Techno Seq",
-  "description": "A mobile-first 8-track techno step sequencer.",
+  "description": "A mobile-first techno song arranger with piano roll, synths and JSON projects.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

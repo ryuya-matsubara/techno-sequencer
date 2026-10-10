@@ -1,41 +1,41 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b0b0d" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Techno Seq" />
-  <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="./icon.jpeg" />
-  <link rel="icon" href="./icon.jpeg" type="image/jpeg" />
-  <link rel="stylesheet" href="./home.css" />
-  <title>Techno Sequencer</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0b0d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Techno Seq">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icon.jpeg">
+  <link rel="icon" href="./icon.jpeg" type="image/jpeg">
+  <link rel="stylesheet" href="./home-v2.css">
+  <title>My Songs · Techno Sequencer</title>
 </head>
 <body>
-  <main class="home-shell">
-    <header class="home-head">
-      <div>
-        <p class="eyebrow">TECHNO SEQUENCER</p>
-        <h1>Patterns</h1>
-        <p class="subtitle">Choose a saved pattern or start a new one.</p>
-      </div>
-      <button id="newPatternBtn" class="new-button" type="button">＋ New Pattern</button>
-    </header>
-
-    <section class="library" aria-labelledby="libraryTitle">
-      <div class="library-head">
-        <h2 id="libraryTitle">Saved Patterns</h2>
-        <span id="savedCount" class="count">0</span>
-      </div>
-      <div id="patternList" class="pattern-list"></div>
-      <div id="emptyState" class="empty-state" hidden>
-        <p>No saved patterns yet.</p>
-        <button id="emptyNewBtn" type="button">Create your first pattern</button>
-      </div>
-    </section>
-  </main>
-  <script src="./home.js"></script>
+<main class="home">
+  <header>
+    <p class="eyebrow">TECHNO SEQUENCER</p>
+    <h1>My Songs</h1>
+    <p class="subtitle">Create full tracks with patterns, synths and a timeline.</p>
+  </header>
+  <div class="main-actions">
+    <button id="newSong" class="primary" type="button">＋ New Song</button>
+    <button id="importSong" type="button">↑ Import JSON</button>
+    <input id="jsonFile" type="file" accept=".json,application/json" hidden>
+  </div>
+  <section class="library">
+    <div class="library-head"><h2>Saved Songs</h2><span id="savedCount">0</span></div>
+    <p class="message" id="message" role="status"></p>
+    <div id="songList" class="song-list"></div>
+    <div id="emptyState" class="empty">
+      <p>No songs yet. Create your first track or import a song.</p>
+    </div>
+  </section>
+  <footer>Projects are stored on this device. Use Download JSON to move one song to another device.</footer>
+</main>
+<script src="./song-data.js"></script>
+<script src="./home-v2.js"></script>
 </body>
 </html>
