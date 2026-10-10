@@ -5,7 +5,7 @@
   let song=D.getSong(id);
   if(!song){location.replace('./');return;}
   const audio=new window.TechnoAudio();
-  let selected=null, menuSelection=null, noteDuration=1, tab='song', currentBar=-1, pianoHalf=0;
+  let selected=null, menuSelection=null, noteDuration=2, tab='song', currentBar=-1;
   const el={
     back:$('#backLink'),editTabs:$('#editTabs'),rename:$('#renameSong'),save:$('#saveBtn'),play:$('#playBtn'),stop:$('#stopBtn'),
     bpm:$('#bpm'),position:$('#position'),status:$('#status'),bars:$('#songBars'),
@@ -130,7 +130,6 @@
     message('クリップを追加しました。');
   }
   function openEditor(trackId,clipId){
-    pianoHalf=0;
     selected={track:trackId,clip:clipId};
     switchTab('pattern');
   }
@@ -193,7 +192,7 @@
     const newScroll=el.patternGrid.querySelector('.piano-scroll');
     if(newScroll&&preserveScroll){newScroll.scrollLeft=left;newScroll.scrollTop=top;}
     $('#patternHint').textContent=r.meta.type==='melody'
-      ?'半小節（8ステップ）ずつ表示。押したまま右に動かすと音が伸びます。タップで追加・削除。'
+      ?'半ビート（8分音符）刻み。横スクロールは上の拍目盛り、右ドラッグで音を伸ばせます。タップで追加・削除。'
       :'黄色のステップで音が鳴ります。タップしてON/OFFを切り替えます。';
   }
   function toggleDrum(step){
@@ -224,9 +223,7 @@
       container:el.patternGrid,
       clip:r.clip,
       trackId:r.track.id,
-      page:pianoHalf,
       noteLength:()=>noteDuration,
-      onPageChange:page=>{pianoHalf=page;},
       onChange:()=>{save();renderPattern(true);}
     });
   }
@@ -298,7 +295,7 @@
     document.querySelectorAll('.drum-cell.playing,.piano-cell.playing').forEach(c=>c.classList.remove('playing'));
     if(step<0 || tab==='song')return;
     const index=step%(D.PATTERN_BARS*16);
-    document.querySelectorAll('[data-step="'+index+'"]').forEach(c=>c.classList.add('playing'));
+    document.querySelectorAll('[data-step="'+index+'"],.piano-cell[data-step="'+(index-index%2)+'"]').forEach(c=>c.classList.add('playing'));
   }
   el.tabs.forEach(button=>button.addEventListener('click',()=>switchTab(button.dataset.tab)));
   el.back.addEventListener('click',event=>{

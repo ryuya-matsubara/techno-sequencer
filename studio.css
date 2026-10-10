@@ -50,16 +50,14 @@ input[type=range]{accent-color:var(--accent);padding:0;min-height:25px;width:100
 /* Make fixed four-bar drum editing legible in every viewport size. */
 .drum-grid .bar-divider:not(:first-child){border-top:1px solid var(--border);margin-top:8px}
 
-/* Bass and Lead only: half-bar (8-step) viewport and finger-sized notes. */
+/* Bass and Lead only: continuous half-beat grid, draggable notes. */
 .halfbar-editor{display:grid;gap:8px;min-width:0}
-.halfbar-nav{display:flex;justify-content:space-between;align-items:center;gap:12px}
-.halfbar-nav button{flex:none;min-width:48px;min-height:42px;font-size:20px}
-.halfbar-nav button:disabled{opacity:.32;cursor:default}
-.halfbar-label{text-align:center;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
 .halfbar-scroll{width:100%;max-height:395px;overscroll-behavior-x:contain}
 .halfbar-scroll .piano-row{width:max-content}
 .halfbar-scroll .piano-cell{width:var(--piano-step,36px);min-width:var(--piano-step,36px);height:36px;min-height:36px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .halfbar-scroll .piano-key{height:36px;min-height:36px}
-.halfbar-scroll .piano-cell.half-start{border-left-color:#747481}
+.halfbar-scroll .piano-cell.bar-start{border-left:2px solid #a5a5af}
 .halfbar-scroll .piano-cell.preview{background:#d6ff32;border-color:#fafed2}
-.halfbar-scroll .piano-ruler .piano-cell{touch-action:none}
+.halfbar-scroll .piano-ruler,.halfbar-scroll .piano-ruler .piano-cell{touch-action:pan-x;user-select:none;-webkit-user-select:none}
+.halfbar-scroll .piano-ruler .piano-cell{font-size:11px}
+.halfbar-scroll .piano-row .piano-cell{touch-action:pan-y}
