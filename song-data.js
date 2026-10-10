@@ -86,7 +86,12 @@
       }).filter(Boolean):[];
       // Resolve conflicting imported clips deterministically.
       dst.clips.sort((a,b)=>a.startBar-b.startBar);
-      dst.clips=dst.clips.filter((c,i,a)=>i===0 || c.startBar>=a[i-1].startBar+a[i-1].lengthBars);
+      const withoutOverlap=[];
+      dst.clips.forEach(c=>{
+        const previous=withoutOverlap[withoutOverlap.length-1];
+        if(!previous || c.startBar>=previous.startBar+previous.lengthBars)withoutOverlap.push(c);
+      });
+      dst.clips=withoutOverlap;
     });
     return song;
   }
