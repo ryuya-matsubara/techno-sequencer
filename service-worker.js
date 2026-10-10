@@ -21,5 +21,8 @@ self.addEventListener('fetch', event => {
       caches.open(CACHE).then(cache => cache.put(event.request,clone)).catch(console.warn);
     }
     return response;
-  }).catch(async () => (await caches.match(event.request)) || (await caches.match('./index.html'))));
+  }).catch(async () => {
+    const url=new URL(event.request.url);url.search='';
+    return (await caches.match(event.request)) || (await caches.match(url.toString())) || (await caches.match('./index.html'));
+  }));
 });
