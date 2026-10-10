@@ -92,6 +92,10 @@
       onChange();
     }
 
+    // Mobile gesture rule: a quick horizontal swipe pans in BOTH directions.
+    // Hold a note for 280ms before moving right to extend its duration.
+    // This avoids interpreting a normal right swipe as a note edit.
+    const HOLD_MS=280, MOVE_THRESHOLD=9;
     let drag=null;
     const pointerCol=clientX=>{
       const bounds=scroll.getBoundingClientRect();
@@ -109,48 +113,90 @@
         cells[col].classList.toggle('preview',begin<drag.end&&begin+STEP>drag.start);
       }
     }
+    function cancelHold(){
+      if(drag?.holdTimer!==null&&drag?.holdTimer!==undefined){
+        clearTimeout(drag.holdTimer);
+        drag.holdTimer=null;
+      }
+    }
     function cancelEdge(){
       if(drag?.timer){clearTimeout(drag.timer);drag.timer=null;}
+    }
+    function maxScrollLeft(){
+      return Math.max(0,(scroll.scrollWidth||COLUMNS*width+48)-(scroll.clientWidth||340));
     }
     function edgeScroll(clientX){
       cancelEdge();
       if(!drag||drag.mode!=='extend'||drag.end>=TOTAL)return;
       if(clientX<scroll.getBoundingClientRect().right-28)return;
-      // Continue growing into following bars while the finger is held at the edge.
+      // Holding at the right edge keeps scrolling and lengthening the note.
       drag.timer=setTimeout(()=>{
         if(!drag||drag.mode!=='extend')return;
-        scroll.scrollLeft=Math.min((COLUMNS-1)*width,scroll.scrollLeft+width);
+        const before=scroll.scrollLeft;
+        scroll.scrollLeft=Math.min(maxScrollLeft(),before+width);
+        if(scroll.scrollLeft<=before)return;
         drag.end=Math.min(TOTAL,Math.max(drag.end+STEP,(pointerCol(clientX)+1)*STEP));
         preview();
         edgeScroll(clientX);
       },300);
     }
 
+    scroll.addEventListener('contextmenu',event=>{
+      if(event.target.closest?.('.piano-cell[data-pitch][data-step]')){
+        event.preventDefault();
+      }
+    });
     scroll.addEventListener('pointerdown',e=>{
       const cell=e.target.closest?.('.piano-cell[data-pitch][data-step]');
       if(!cell||drag||e.isPrimary===false)return;
+      if(e.button!==undefined&&e.button!==0)return;
       const coarseStart=Number(cell.dataset.step),pitch=cell.dataset.pitch;
       const existing=clip.notes.find(n=>n.pitch===pitch&&n.start<coarseStart+STEP
         &&n.start+n.duration>coarseStart)||null;
       const start=existing?.start??coarseStart;
-      drag={id:e.pointerId,originX:e.clientX,scrollLeft:scroll.scrollLeft,
-        start,end:start+STEP,pitch,existing,mode:'pending',timer:null};
+      drag={id:e.pointerId,originX:e.clientX,originY:e.clientY||0,
+        scrollLeft:scroll.scrollLeft,start,end:Math.max(start+STEP,(existing?.start||start)+(existing?.duration||STEP)),
+        pitch,existing,mode:'pending',timer:null,holdTimer:null};
+      // Mouse users can drag notes directly, as before. Touch users must
+      // hold before dragging; otherwise a swipe pans the timeline.
+      if(e.pointerType==='mouse'){
+        drag.mode='mouse-pending';
+      } else {
+        const pointerId=e.pointerId;
+        drag.holdTimer=setTimeout(()=>{
+          if(!drag||drag.id!==pointerId||drag.mode!=='pending')return;
+          drag.holdTimer=null;
+          drag.mode='extend';
+          preview();
+        },HOLD_MS);
+      }
       scroll.setPointerCapture?.(e.pointerId);
     });
     scroll.addEventListener('pointermove',e=>{
       if(!drag||e.pointerId!==drag.id)return;
       const dx=e.clientX-drag.originX;
-      if(drag.mode==='pending'){
-        if(dx>7)drag.mode='extend';
-        else if(dx< -7)drag.mode='scroll';
+      const dy=(e.clientY||0)-drag.originY;
+      if(drag.mode==='pending'||drag.mode==='mouse-pending'){
+        if(Math.abs(dx)>MOVE_THRESHOLD||Math.abs(dy)>MOVE_THRESHOLD){
+          const isMouse=drag.mode==='mouse-pending';
+          cancelHold();
+          if(Math.abs(dy)>Math.abs(dx)){
+            drag.mode='vertical';
+          } else if(isMouse&&dx>0){
+            drag.mode='extend';
+          } else {
+            drag.mode='scroll';
+          }
+        }
       }
       if(drag.mode==='scroll'){
         cancelEdge();
-        scroll.scrollLeft=Math.max(0,drag.scrollLeft-dx);
+        // Works for both left and right finger swipes, on any note cell.
+        scroll.scrollLeft=Math.max(0,Math.min(maxScrollLeft(),drag.scrollLeft-dx));
         return;
       }
       if(drag.mode==='extend'){
-        // Ends on half-beat boundaries, preserving odd legacy note starts.
+        // Ends snap to half-beat boundaries, preserving older odd note starts.
         drag.end=Math.max(drag.start+STEP,(pointerCol(e.clientX)+1)*STEP);
         preview();
         edgeScroll(e.clientX);
@@ -158,14 +204,15 @@
     });
     function finish(e,canceled=false){
       if(!drag||e.pointerId!==drag.id)return;
+      cancelHold();
       cancelEdge();
       const action=drag;drag=null;
       try{
         if(scroll.hasPointerCapture?.(e.pointerId))scroll.releasePointerCapture(e.pointerId);
       }catch{}
       clearPreview();
-      if(canceled||action.mode==='scroll')return;
-      if(action.mode==='pending'&&action.existing){
+      if(canceled||action.mode==='scroll'||action.mode==='vertical')return;
+      if((action.mode==='pending'||action.mode==='mouse-pending')&&action.existing){
         const pos=clip.notes.indexOf(action.existing);
         if(pos>=0)clip.notes.splice(pos,1);
         onChange();return;
