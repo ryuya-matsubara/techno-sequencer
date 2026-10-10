@@ -35,3 +35,4 @@ input[type=range]{accent-color:var(--accent);padding:0;min-height:25px;width:100
 .status{display:flex;justify-content:space-between;gap:8px;margin:12px 2px;color:var(--muted);font-size:10px;flex-wrap:wrap}.status span:first-child{color:var(--accent)}
 .action-dialog{width:min(400px,calc(100% - 24px));max-height:calc(100dvh - 50px);border:1px solid var(--border);border-radius:17px;background:#141419;color:var(--text);padding:0}.action-dialog::backdrop{background:rgba(0,0,0,.75)}.dialog-body{padding:15px;display:grid;gap:9px}.dialog-top{justify-content:space-between}.dialog-body>button{width:100%;text-align:left}.dialog-body .danger{color:var(--danger)}.inline-select{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}.move-row>*{flex:1}
 @media(max-width:380px){.studio{padding-left:8px;padding-right:8px}.brand{gap:6px}.tabs button{font-size:10px}.transport>button{padding:6px}}
+\n.section-tools[hidden]{display:none}\n
