@@ -12,7 +12,7 @@
       this.ctx=null; this.outputs={}; this.song=null; this.playing=false;
       this.timer=null; this.drawTimers=new Set(); this.onStep=null;
       this.position=0; this.nextTime=0; this.preview=null; this.generation=0;
-      this.needsRecovery=false;
+      this.needsRecovery=false; this.clockWatch=null; this.onFailure=null;
     }
     init() {
       if(this.ctx&&this.ctx.state!=='closed') return;
@@ -99,11 +99,25 @@
       this.position=Math.max(0,Math.min(steps-1,Math.floor(Number(startStep)||0)));
       this.nextTime=this.ctx.currentTime+.06;
       this.playing=true;this.updateMix();this.tick();
+      // Some iOS Web Audio contexts report "running" while their clock is
+      // frozen after an interruption. Detect that rather than showing Play
+      // indefinitely with no sound; rebuild on the user's next tap.
+      const ctx=this.ctx, startedAt=ctx.currentTime;
+      this.clockWatch=setTimeout(()=>{
+        this.clockWatch=null;
+        if(generation!==this.generation||!this.playing||this.ctx!==ctx)return;
+        if(ctx.currentTime-startedAt<0.08){
+          this.stop();
+          this.needsRecovery=true;
+          this.onFailure?.('音声が中断されました。もう一度Playを押してください。');
+        }
+      },900);
     }
     stop() {
       this.generation++;
       this.playing=false;
       clearTimeout(this.timer);this.timer=null;
+      clearTimeout(this.clockWatch);this.clockWatch=null;
       this.drawTimers.forEach(t=>clearTimeout(t));this.drawTimers.clear();
       this.onStep?.(-1);
     }
