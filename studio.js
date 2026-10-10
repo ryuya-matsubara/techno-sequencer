@@ -274,7 +274,8 @@
   const profile={
     'Deep Bass':[35,65,35],'Acid Bass':[85,40,80],'Hard Bass':[90,30,85],'Soft Bass':[25,75,20],
     'Deep Kick':[30,75,65],'Hard Kick':[65,35,90],'Soft Kick':[30,45,25],
-    'Classic Lead':[60,40,20],'Bright Lead':[90,45,15],'Soft Lead':[30,75,65],'Pluck Lead':[75,25,5]
+    'Classic Lead':[60,40,20],'Bright Lead':[90,45,15],'Soft Lead':[30,75,65],'Pluck Lead':[75,25,5],
+    'Acoustic Guitar':[58,72,55]
   };
   function renderSoundSettings(){
     const r=findSelection();
@@ -296,7 +297,10 @@
     });
     presetBox.append(heading,select);el.soundEditor.append(presetBox);
     const paramBox=document.createElement('div');paramBox.className='sound-box';
-    D.PARAMETERS[meta.id].forEach(([name,description],i)=>{
+    const params=track.sound.preset==='Acoustic Guitar'
+      ?[['Brightness','ギター弦の高音の明るさを調整します。'],['Sustain','弦の余韻の長さを調整します。'],['Pick','弦を弾く強さを調整します。']]
+      :D.PARAMETERS[meta.id];
+    params.forEach(([name,description],i)=>{
       const wrap=document.createElement('div');wrap.className='sound-param';
       const top=document.createElement('div');top.className='slider-title';
       const nameNode=document.createElement('span');nameNode.textContent=name;

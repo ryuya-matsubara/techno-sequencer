@@ -13,6 +13,7 @@
       this.timer=null; this.drawTimers=new Set(); this.onStep=null;
       this.position=0; this.nextTime=0; this.preview=null; this.generation=0;
       this.needsRecovery=false; this.clockWatch=null; this.onFailure=null;
+      this.guitarCache=new Map();
     }
     init() {
       if(this.ctx&&this.ctx.state!=='closed') return;
@@ -27,7 +28,7 @@
       const noise=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);
       const samples=noise.getChannelData(0);
       for(let i=0;i<samples.length;i++)samples[i]=Math.random()*2-1;
-      this.ctx=ctx; this.noise=noise;
+      this.ctx=ctx; this.noise=noise; this.guitarCache.clear();
     }
     // iOS may leave a previously used AudioContext interrupted or silent
     // after the app loses focus. Rebuild on the next user-initiated Play.
@@ -182,10 +183,87 @@
       src.connect(f).connect(g).connect(target);
       src.start(time);src.stop(time+length+.03);
     }
+    // A lightweight, offline plucked-string model (Karplus–Strong).
+    // All waveforms are generated locally; no external samples or APIs.
+    guitarWave(pitch,params) {
+      const ctx=this.ctx;
+      const sampleRate=ctx.sampleRate;
+      const frequency=Math.max(30,Math.min(2400,midiFreq(pitch)));
+      const [brightness,decay,pick]=params;
+      const key=[sampleRate,pitch,brightness,decay,pick].join(':');
+      if(this.guitarCache.has(key))return this.guitarCache.get(key);
+
+      const buffer=ctx.createBuffer(1,Math.ceil(sampleRate*3),sampleRate);
+      const values=buffer.getChannelData(0);
+      const period=Math.max(12,Math.round(sampleRate/frequency));
+      const string=new Float32Array(period);
+      // A reproducible, gently smoothed pluck excitation prevents clicks.
+      let seed=2166136261;
+      for(const ch of key)seed=Math.imul(seed^ch.charCodeAt(0),16777619)>>>0;
+      let average=0;
+      const pickSmooth=.16+(1-brightness/100)*.55;
+      let prior=0;
+      for(let i=0;i<period;i++){
+        seed=(Math.imul(seed,1664525)+1013904223)>>>0;
+        const noise=seed/2147483648-1;
+        const excited=noise*(1-pickSmooth)+prior*pickSmooth;
+        string[i]=excited;
+        average+=excited;
+        prior=excited;
+      }
+      average/=period;
+      for(let i=0;i<period;i++)string[i]-=average;
+      // Higher decay setting means a longer sustain. Feedback is frequency
+      // compensated so bass strings do not disappear prematurely.
+      const sustain=1.0+decay/100*3.3;
+      const feedback=Math.exp(-4/(frequency*sustain));
+      const damping=.47+(1-brightness/100)*.20;
+      let cursor=0;
+      for(let i=0;i<values.length;i++){
+        const current=string[cursor];
+        const next=string[cursor+1===period?0:cursor+1];
+        values[i]=current;
+        string[cursor]=(current*(1-damping)+next*damping)*feedback;
+        cursor=cursor+1===period?0:cursor+1;
+      }
+      // At most 30 cached pitch/tone buffers (around 16 MB on iPhone).
+      if(this.guitarCache.size>=30)
+        this.guitarCache.delete(this.guitarCache.keys().next().value);
+      this.guitarCache.set(key,buffer);
+      return buffer;
+    }
+    pluckGuitar(track,time,stepSeconds,note){
+      const ctx=this.ctx, tone=track.sound.params[0]/100;
+      const pick=track.sound.params[2]/100;
+      const buffer=this.guitarWave(note.pitch,track.sound.params);
+      const source=ctx.createBufferSource();
+      source.buffer=buffer;
+
+      const lowpass=ctx.createBiquadFilter();
+      lowpass.type='lowpass';
+      lowpass.frequency.setValueAtTime(1600+tone*9300,time);
+      const body=ctx.createBiquadFilter();
+      body.type='peaking';body.frequency.value=205;
+      body.Q.value=.8;body.gain.value=3;
+      const amplitude=ctx.createGain();
+      const duration=Math.max(.11,Math.min(2.65,(note.duration||1)*stepSeconds));
+      const release=Math.min(2.95,duration+.20+track.sound.params[1]/100*.22);
+      const peak=(track.id==='bass'?.87:.69)*(.75+.45*pick);
+      amplitude.gain.setValueAtTime(.0001,time);
+      amplitude.gain.exponentialRampToValueAtTime(Math.max(.01,peak),time+.003);
+      amplitude.gain.exponentialRampToValueAtTime(.0001,time+release);
+      source.connect(lowpass).connect(body).connect(amplitude).connect(this.outputs[track.id]);
+      source.start(time);
+      source.stop(time+release+.015);
+    }
     trigger(track,time,stepSeconds,note) {
       const ctx=this.ctx, out=this.outputs[track.id], params=track.sound.params;
       const tone=params[0]/100,decay=params[1]/100,punch=params[2]/100;
       const preset=track.sound.preset;
+      if(preset==='Acoustic Guitar'&&(track.id==='bass'||track.id==='lead')){
+        this.pluckGuitar(track,time,stepSeconds,note);
+        return;
+      }
       const lengthSteps=Math.max(1,note.duration||1);
       const noteSeconds=lengthSteps*stepSeconds;
       const gain=ctx.createGain(),filter=ctx.createBiquadFilter();

@@ -20,8 +20,8 @@
     closedHat:['Crisp Hat','Soft Hat','Bright Hat'],
     openHat:['Open Hat','Airy Hat','Dark Hat'],
     perc:['Tom Perc','Metal Perc','Wood Perc'],
-    bass:['Deep Bass','Acid Bass','Hard Bass','Soft Bass'],
-    lead:['Classic Lead','Bright Lead','Soft Lead','Pluck Lead'],
+    bass:['Deep Bass','Acid Bass','Hard Bass','Soft Bass','Acoustic Guitar'],
+    lead:['Classic Lead','Bright Lead','Soft Lead','Pluck Lead','Acoustic Guitar'],
     fx:['Noise Sweep','Dark Sweep','Bright Sweep']
   };
   const PARAMETERS = {
