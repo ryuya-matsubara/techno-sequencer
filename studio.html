@@ -16,7 +16,7 @@
 <main class="studio">
   <header class="topbar">
     <div class="brand">
-      <a class="back" href="./" aria-label="楽曲一覧に戻る">‹</a>
+      <a id="backLink" class="back" href="./" aria-label="楽曲一覧に戻る">‹</a>
       <div class="name">
         <span class="eyebrow">TECHNO SEQUENCER</span>
         <button id="renameSong" class="song-name" title="曲名を変更">Untitled Song <span>✎</span></button>
@@ -30,9 +30,8 @@
       <div class="play-position" id="position">1 / 32</div>
     </div>
   </header>
-  <nav class="tabs" aria-label="エディタの切り替え">
-    <button data-tab="song" class="selected" type="button">SONG</button>
-    <button data-tab="pattern" type="button">PATTERN</button>
+  <nav id="editTabs" class="tabs" aria-label="パターン編集メニュー" hidden>
+    <button data-tab="pattern" class="selected" type="button">PATTERN</button>
     <button data-tab="mixer" type="button">MIXER</button>
     <button data-tab="sound" type="button">SOUND</button>
   </nav>
@@ -49,24 +48,18 @@
           <option value="128">128 bars</option>
         </select>
       </label>
-      <button id="starterBtn" type="button">＋ Starter Beat</button>
     </div>
     <div class="timeline-wrap" id="timelineWrap" tabindex="0" aria-label="曲の時間軸">
       <div id="timeline" class="timeline"></div>
     </div>
-    <p class="hint">横スクロールで曲を移動できます。クリップは1小節単位で配置されます。</p>
+    <p class="hint">横スクロールで曲を移動できます。新しいクリップは4小節単位で配置されます。</p>
   </section>
   <section id="patternPanel" class="panel" hidden>
     <div class="section-head">
       <div><h2 id="patternTitle">Pattern Editor</h2><p id="patternSub">クリップを選択すると編集できます。</p></div>
-      <button id="backToSong" type="button">← Song</button>
     </div>
     <div id="patternControls" class="section-tools">
-      <label>Pattern length
-        <select id="patternBars">
-          <option value="1">1 bar</option><option value="2">2 bars</option><option value="4">4 bars</option>
-        </select>
-      </label>
+      <div class="fixed-pattern-length"><span>Pattern length</span><strong>4 bars · Fixed</strong></div>
       <label id="noteLengthLabel">Note length
         <select id="noteLength">
           <option value="1">1/16</option><option value="2">1/8</option><option value="4">1/4</option>
@@ -96,12 +89,11 @@
     <button id="menuDuplicate" type="button">▣ Duplicate (independent)</button>
     <label class="inline-select">Clip length
       <select id="menuLength">
-        <option value="1">1 bar</option><option value="2">2 bars</option><option value="4">4 bars</option>
-        <option value="8">8 bars</option><option value="16">16 bars</option><option value="32">32 bars</option>
+        <option value="4">4 bars</option><option value="8">8 bars</option><option value="16">16 bars</option><option value="32">32 bars</option>
       </select>
     </label>
     <div class="move-row">
-      <button id="moveLeft" type="button">← 1 bar</button><button id="moveRight" type="button">1 bar →</button>
+      <button id="moveLeft" type="button">← 4 bars</button><button id="moveRight" type="button">4 bars →</button>
     </div>
     <button id="menuDelete" class="danger" type="button">Delete Clip</button>
   </div>
