@@ -1,4 +1,4 @@
-const CACHE = 'techno-sequencer-v11';
+const CACHE = 'techno-sequencer-v12';
 const ASSETS = [
   './','./index.html','./home-v2.css','./home-v2.js',
   './song-data.js','./studio.html','./studio.css','./studio.js','./piano-roll.js','./studio-audio.js',
