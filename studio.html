@@ -32,7 +32,6 @@
   </header>
   <nav id="editTabs" class="tabs" aria-label="パターン編集メニュー" hidden>
     <button data-tab="pattern" class="selected" type="button">PATTERN</button>
-    <button data-tab="mixer" type="button">MIXER</button>
     <button data-tab="sound" type="button">SOUND</button>
   </nav>
   <section id="songPanel" class="panel">
@@ -60,6 +59,12 @@
     </div>
     <div id="patternControls" class="section-tools">
       <div class="fixed-pattern-length"><span>Pattern length</span><strong>4 bars · Fixed</strong></div>
+      <label class="pattern-volume" for="patternVolume">Volume · <span id="patternInstrument">Track</span>
+        <span class="volume-row">
+          <input id="patternVolume" type="range" min="0" max="150" step="1" value="100">
+          <output id="patternVolumeValue" for="patternVolume">100%</output>
+        </span>
+      </label>
       <label id="noteLengthLabel">Note length
         <select id="noteLength">
           <option value="1">1/16</option><option value="2">1/8</option><option value="4">1/4</option>
@@ -71,13 +76,8 @@
     <div id="patternGrid" class="pattern-workspace"></div>
     <p class="hint" id="patternHint">マスをタップすると音を配置・削除できます。</p>
   </section>
-  <section id="mixerPanel" class="panel" hidden>
-    <div class="section-head"><div><h2>Mixer</h2><p>楽器ごとの音量とミュートを調整します。</p></div></div>
-    <div id="mixerRows" class="settings-list"></div>
-  </section>
   <section id="soundPanel" class="panel" hidden>
-    <div class="section-head"><div><h2>Sound</h2><p>プリセットを選んで、3つの項目で音を調整します。</p></div></div>
-    <label class="sound-track-picker">Track <select id="soundTrack"></select></label>
+    <div class="section-head"><div><h2 id="soundTitle">Sound</h2><p>選択中の楽器の音色を調整します。</p></div></div>
     <div id="soundEditor" class="sound-editor"></div>
   </section>
   <footer class="status"><span id="status" role="status">Ready</span><span>Auto-saved on this device</span></footer>
