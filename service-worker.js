@@ -1,7 +1,7 @@
-const CACHE = 'techno-sequencer-v9';
+const CACHE = 'techno-sequencer-v10';
 const ASSETS = [
   './','./index.html','./home-v2.css','./home-v2.js',
-  './song-data.js','./studio.html','./studio.css','./studio.js','./studio-audio.js',
+  './song-data.js','./studio.html','./studio.css','./studio.js','./piano-roll.js','./studio-audio.js',
   './editor.html','./styles.css','./editor.css','./app.js','./editor.js',
   './home.css','./home.js','./manifest.webmanifest','./icon.jpeg'
 ];
