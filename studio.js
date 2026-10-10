@@ -5,7 +5,7 @@
   let song=D.getSong(id);
   if(!song){location.replace('./');return;}
   const audio=new window.TechnoAudio();
-  let selected=null, menuSelection=null, noteDuration=1, tab='song', currentBar=-1;
+  let selected=null, menuSelection=null, noteDuration=1, tab='song', currentBar=-1, pianoHalf=0;
   const el={
     back:$('#backLink'),editTabs:$('#editTabs'),rename:$('#renameSong'),save:$('#saveBtn'),play:$('#playBtn'),stop:$('#stopBtn'),
     bpm:$('#bpm'),position:$('#position'),status:$('#status'),bars:$('#songBars'),
@@ -130,6 +130,7 @@
     message('クリップを追加しました。');
   }
   function openEditor(trackId,clipId){
+    pianoHalf=0;
     selected={track:trackId,clip:clipId};
     switchTab('pattern');
   }
@@ -190,9 +191,9 @@
     if(r.meta.type==='drum')renderDrums(r);
     else renderPiano(r);
     const newScroll=el.patternGrid.querySelector('.piano-scroll');
-    if(newScroll){newScroll.scrollLeft=left;newScroll.scrollTop=top;}
+    if(newScroll&&preserveScroll){newScroll.scrollLeft=left;newScroll.scrollTop=top;}
     $('#patternHint').textContent=r.meta.type==='melody'
-      ?'音の高さは縦、時間は横。音の長さを選んでマスをタップすると追加、同じマスを再タップすると削除できます。'
+      ?'半小節（8ステップ）ずつ表示。押したまま右に動かすと音が伸びます。タップで追加・削除。'
       :'黄色のステップで音が鳴ります。タップしてON/OFFを切り替えます。';
   }
   function toggleDrum(step){
@@ -218,67 +219,16 @@
     }
     el.patternGrid.append(grid);
   }
-  function pitches(trackId){
-    const min=trackId==='bass'?1:3,max=trackId==='bass'?3:5;
-    const names=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-    const all=[];
-    for(let o=min;o<=max;o++)names.forEach(n=>all.push(n+o));
-    return all.reverse();
-  }
-  function toggleNote(step,pitch){
-    const r=findSelection();if(!r)return;
-    const notes=r.clip.notes;
-    const exact=notes.findIndex(n=>n.start===step&&n.pitch===pitch);
-    if(exact>=0)notes.splice(exact,1);
-    else {
-      const duration=Math.min(noteDuration,D.PATTERN_BARS*16-step);
-      if(r.track.id==='bass'){
-        // Bass plays only one note at a time.
-        for(let i=notes.length-1;i>=0;i--){
-          const n=notes[i];if(n.start<step+duration&&step<n.start+n.duration)notes.splice(i,1);
-        }
-      } else {
-        for(let i=notes.length-1;i>=0;i--){
-          const n=notes[i];if(n.pitch===pitch&&n.start<step+duration&&step<n.start+n.duration)notes.splice(i,1);
-        }
-      }
-      notes.push({start:step,duration,pitch});
-    }
-    notes.sort((a,b)=>a.start-b.start);
-    save();renderPattern(true);
-  }
   function renderPiano(r){
-    const scroll=document.createElement('div');scroll.className='piano-scroll';
-    const total=D.PATTERN_BARS*16;
-    const ruler=document.createElement('div');ruler.className='piano-ruler';
-    const corner=document.createElement('div');corner.className='piano-key';corner.textContent='NOTE';ruler.append(corner);
-    for(let step=0;step<total;step++){
-      const cell=document.createElement('div');cell.className='piano-cell';
-      if(step%4===0)cell.classList.add('beat');
-      cell.textContent=step%16===0?'B'+(Math.floor(step/16)+1):step%4===0?String(step%16/4+1):'';
-      ruler.append(cell);
-    }
-    scroll.append(ruler);
-    pitches(r.track.id).forEach(pitch=>{
-      const row=document.createElement('div');row.className='piano-row';
-      const key=document.createElement('div');key.className='piano-key'+(pitch.includes('#')?' black':'');
-      key.textContent=pitch;row.append(key);
-      for(let step=0;step<total;step++){
-        const matching=r.clip.notes.find(n=>n.pitch===pitch&&step>=n.start&&step<n.start+n.duration);
-        const cell=document.createElement('button');cell.type='button';
-        cell.className='piano-cell'+(step%4===0?' beat':'')+(matching?(matching.start===step?' on':' tail'):'');
-        cell.dataset.step=step;
-        cell.title=pitch+' · Step '+(step+1);
-        cell.setAttribute('aria-label',pitch+' step '+(step+1));
-        cell.addEventListener('click',()=>toggleNote(matching?matching.start:step,pitch));
-        row.append(cell);
-      }
-      scroll.append(row);
+    window.HalfBarPiano.render({
+      container:el.patternGrid,
+      clip:r.clip,
+      trackId:r.track.id,
+      page:pianoHalf,
+      noteLength:()=>noteDuration,
+      onPageChange:page=>{pianoHalf=page;},
+      onChange:()=>{save();renderPattern(true);}
     });
-    el.patternGrid.append(scroll);
-    const hint=document.createElement('p');hint.className='piano-note-help';
-    hint.textContent=r.track.id==='bass'?'Bassは同時に1音だけ鳴ります。':'Leadは複数音を同時に重ねられます。';
-    el.patternGrid.append(hint);
   }
   function renderSound(){
     const r=findSelection();
