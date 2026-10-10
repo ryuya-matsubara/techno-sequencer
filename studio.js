@@ -17,6 +17,7 @@
     menu:$('#clipMenu'),menuTitle:$('#clipMenuTitle'),menuLength:$('#menuLength')
   };
   function message(txt){el.status.textContent=txt;}
+  audio.onFailure=text=>message(text);
   function save(){
     try{D.saveSong(song);if(audio.playing){audio.song=song;audio.updateMix();}}
     catch(e){message('保存失敗: '+e.message);}
