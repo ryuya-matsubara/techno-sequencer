@@ -127,7 +127,7 @@
         case 'closedHat':
         case 'openHat': {
           const opened=track.id==='openHat';
-          const len=opened?.12+decay*.65:.025+decay*.16;
+          const len=opened ? (.12+decay*.65) : (.025+decay*.16);
           this.noiseHit(time,len,.25+punch*.21,2400+tone*9000,'highpass',out);
           return;
         }
@@ -139,7 +139,7 @@
           return;
         }
         case 'bass': {
-          const len=Math.max(.07,Math.min(noteSeconds*.96,.09+decay*.65));
+          const len=Math.max(.07,Math.min(noteSeconds*.96,.12+decay*Math.max(.15,noteSeconds)));
           const wave=preset==='Deep Bass'||preset==='Soft Bass'?'triangle':preset==='Hard Bass'?'square':'sawtooth';
           filter.type='lowpass';filter.Q.value=preset==='Acid Bass'?9:2;
           const cutoff=140+tone*4000;
@@ -150,7 +150,7 @@
           return;
         }
         case 'lead': {
-          const len=Math.max(.08,Math.min(noteSeconds*.97,.08+decay*.9));
+          const len=Math.max(.08,Math.min(noteSeconds*.97,.10+decay*Math.max(.15,noteSeconds)));
           const wave=preset==='Soft Lead'?'sine':preset==='Bright Lead'?'sawtooth':preset==='Pluck Lead'?'triangle':'square';
           filter.type='lowpass';filter.Q.value=2;filter.frequency.value=350+tone*6800;
           this.osc(wave,midiFreq(note.pitch),time,time+len+.03,gain,out,.6,filter);
