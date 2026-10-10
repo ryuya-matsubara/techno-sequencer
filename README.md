@@ -1,6 +1,6 @@
 # Techno Sequencer — Song Studio
 
-Mobile-first, offline-capable techno song arranger based on Web Audio API. No paid services or audio assets are needed.
+Mobile-first, offline-capable techno song arranger based on Web Audio API. No paid services or external audio assets are needed. Acoustic Guitar is synthesized locally using a lightweight plucked-string model, rather than a recorded guitar sample.
 
 ## Features
 
@@ -11,7 +11,7 @@ Mobile-first, offline-capable techno song arranger based on Web Audio API. No pa
 - All patterns are fixed at 4 bars (64 sixteenth-note steps); no pattern length selection. Legacy 1- and 2-bar patterns are expanded by repeating their original note data
 - Bass/Lead piano roll with note pitch and note duration; polyphonic lead, monophonic bass
 - Selected instrument volume is adjusted directly inside PATTERN (no separate MIXER tab)
-- SOUND tab automatically targets the selected clip instrument (no track selector), with presets and 3 explained parameters
+- SOUND tab automatically targets the selected clip instrument (no track selector), with presets and 3 explained parameters; Bass and Lead also support a procedurally synthesized Acoustic Guitar preset (brightness, sustain, pick)
 - Song tempo 60–200 BPM, song length 16/32/64/128 bars; Song playback advances through the full arrangement, while Pattern/Mixer/Sound playback loops only the selected 4-bar clip
 - Per-song JSON download and JSON import (no Starter Beat button)
 - Auto-save in browser storage, PWA/offline support
