@@ -17,7 +17,7 @@
   };
   function message(txt){el.status.textContent=txt;}
   function save(){
-    try{song=D.saveSong(song);if(audio.playing){audio.song=song;audio.updateMix();}}
+    try{D.saveSong(song);if(audio.playing){audio.song=song;audio.updateMix();}}
     catch(e){message('保存失敗: '+e.message);}
   }
   function findSelection(ref=selected){
@@ -176,7 +176,7 @@
     const r=findSelection();if(!r)return;
     const idx=r.clip.notes.findIndex(n=>n.start===step);
     if(idx>=0)r.clip.notes.splice(idx,1);
-    else r.clip.notes.push({start,duration:1});
+    else r.clip.notes.push({start:step,duration:1});
     save();renderPattern();
   }
   function renderDrums(r){
